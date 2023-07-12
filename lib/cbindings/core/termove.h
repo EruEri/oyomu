@@ -15,35 +15,44 @@
 //                                                                                            //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifndef TERMOVE_H
+#define TERMOVE_H
 
-#define CAML_NAME_SPACE
+#include <chafa.h>
+#include <termios.h>
+
+extern const char* NEW_SCREEN_BUFF_SEQ;
+extern const char* END_SRCEEN_BUFF_SEQ;
+extern const char* CLEAR_CONSOLE;
+extern const char* UPPER_LEFT_CORNER;
+extern const char* UPPER_RIGHT_CORNER;
+extern const char* LOWER_LEFT_CORNER;
+extern const char* LOWER_RIGTH_CORNER;
+extern const char* HORIZONTAL_LINE; // "─" != '-'
+extern const char* VERTICAL_LINE;
+
+void set_cursor_at(unsigned int line, unsigned int colmn);
+
+void move_down(unsigned int l);
+
+void clear();
+
+void move_forward_column(unsigned int c);
+
+void draw_vertical_line();
+
+void draw_gstring(GString* gstring);
+
+void draw_horizontal_line();
+
+void draw_string(const char* s);
+
+void draw_char(char c);
+
+void next_line(unsigned int current_line);
+
+void redraw_empty(const struct winsize* w);
 
 
-#include <stddef.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include "caml/mlvalues.h"
-#include "caml/memory.h"
-#include "caml/misc.h"
-#include "caml/callback.h"
-#include "comic.h"
-#include "callback.h"
 
-
-page_t page_of_caml_page(value page) {
-    CAMLparam1(page);
-    CAMLlocal1(data);
-    data = Field(page, 0);
-    const uint8_t* bytes = (const uint8_t*) String_val(data);
-    size_t len = caml_string_length(data);
-    page_t c_page = {.ptr = bytes, len = len};
-    return c_page;
-}
-
-
-caml_comic_t comic_of_path_archive(value path) {
-    CAMLparam1(path);
-    CAMLlocal1(caml_comic);
-    caml_comic = caml_comic_of_zip(path);
-    return caml_comic_of_zip(caml_comic);
-}
+#endif

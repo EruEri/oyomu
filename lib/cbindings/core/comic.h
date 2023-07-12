@@ -17,8 +17,8 @@
 
 #define CAML_NAME_SPACE
 
-#ifndef _COMIC_H
-#define _COMIC_H
+#ifndef __COMIC_H__
+#define __COMIC_H__
 
 #include <caml/mlvalues.h>
 #include <stddef.h>
