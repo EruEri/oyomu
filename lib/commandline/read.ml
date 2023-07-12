@@ -41,7 +41,7 @@ let cmd_term run =
 
 let cmd_doc = "Read comics"
 
-let cmd_man =     
+let cmd_man = 
   [
     `S Manpage.s_description;
     `P "Read commic"; 
@@ -53,7 +53,10 @@ let cmd run =
 
 let run cmd_read =
   let { files } = cmd_read in
-  let _ = files in
+  (* let file = List.hd files in
+  let comic = Libyomu.Comic.comic_of_zip file in
+  let _ = comic in *)
+  let () = Cbindings.Display.comic_read Iterm files () in
   ()
 
 let command = cmd run

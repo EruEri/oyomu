@@ -18,6 +18,8 @@
 #ifndef TERMOVE_H
 #define TERMOVE_H
 
+#include "caml/misc.h"
+#include "caml/mlvalues.h"
 #include <chafa.h>
 #include <termios.h>
 
@@ -30,6 +32,13 @@ extern const char* LOWER_LEFT_CORNER;
 extern const char* LOWER_RIGTH_CORNER;
 extern const char* HORIZONTAL_LINE; // "─" != '-'
 extern const char* VERTICAL_LINE;
+
+void enableRawMode();
+void disableRawMode();
+void end_window();
+void start_window();
+
+CAMLprim value caml_enable_raw_mode(value unit);
 
 void set_cursor_at(unsigned int line, unsigned int colmn);
 

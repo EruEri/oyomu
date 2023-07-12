@@ -16,6 +16,10 @@
 (**********************************************************************************************)
 
  
+
+external enable_raw_mode: unit -> unit = "caml_enable_raw_mode"
+
+
 type render_mode = 
   | NONE
   | Iterm 
@@ -23,7 +27,7 @@ type render_mode =
   | SIXEL
   | SERVER
 
-external c_comic_read: render_mode -> Libyomu.Comic.collection -> unit -> unit = "caml_read_comics"
+external c_comic_read: render_mode -> string list -> unit -> unit = "caml_read_comics"
 
 let comic_read render_mode collection = 
   match render_mode with

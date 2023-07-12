@@ -1,3 +1,4 @@
 (library
  (name libyomu)
+ ; (modules ccallback app comic error)
  (libraries util xdg cmdliner camlzip dune-build-info))

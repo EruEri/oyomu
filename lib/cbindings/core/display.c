@@ -17,9 +17,10 @@
 
 
 
-#include <sys/ttycom.h>
 #define CAML_NAME_SPACE
 
+#include <stdio.h>
+#include <sys/ttycom.h>
 #include <chafa.h>
 #include <MagickWand/MagickWand.h>
 #include "MagickCore/magick-type.h"
@@ -32,7 +33,7 @@
 #include <stddef.h>
 #include <sys/ioctl.h>
 #include <stdlib.h>
-#include "termove.h"
+#include "caml_termove.h"
 #include <unistd.h>
 #include <termios.h>
 
@@ -50,31 +51,6 @@ typedef enum {
     MAGICKNULL,
     MAGICK_EXPORT_FAIl,
 } exit_status_t;
-
-struct termios raw;
-struct termios orig_termios;
-
-void enableRawMode();
-void disableRawMode();
-void end_window();
-
-void enableRawMode() {
-    tcgetattr(STDIN_FILENO, &orig_termios);
-    struct termios raw = orig_termios;
-  
-    raw.c_lflag &= ~(ECHO | ICANON);
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
-}
-
-void disableRawMode() {
-  raw.c_lflag |= (ECHO | ICANON);  
-  tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
-}
-
-void start_window() {
-    enableRawMode();
-    write(STDOUT_FILENO, NEW_SCREEN_BUFF_SEQ, strlen(NEW_SCREEN_BUFF_SEQ));
-}
 
 void handle_sigint(int signo) {
     disableRawMode();
@@ -257,11 +233,18 @@ void show_page(const struct winsize ws, render_mode_t mode, const value *const p
 }
 
 exit_side_t read_comic(render_mode_t mode, value archive_path) {
+
     CAMLparam1(archive_path);
     CAMLlocal4(caml_comic, caml_pages, caml_comic_name, head);
+
+    // puts(String_val(archive_path));
     caml_comic = caml_comic_of_zip(archive_path);
+    puts("Hello world");
     caml_comic_name = Field(caml_comic, 0);
     caml_pages = Field(caml_comic, 1);
+
+    
+    fflush(stdout);
     
     const size_t nb_pages = caml_list_len(caml_pages);
     ssize_t index = 0;
@@ -333,13 +316,24 @@ exit_side_t read_comic(render_mode_t mode, value archive_path) {
 /// 
 /// render_mode -> string list -> unit -> unit 
 CAMLprim value caml_read_comics(value render, value comics, value unit) {
+        // write(STDERR_FILENO, "before\n", 7);
     CAMLparam3(render, comics, unit);
+    CAMLlocal1(head);
     render_mode_t mode = Int_val(render);
     size_t nb_comics = caml_list_len(comics);
-    start_window();
+
+    head = Field(comics, 0);
+    // printf("%s\n", String_val(head));
+    // fflush(stdout);
+
+    MagickWandGenesis();
+    // start_window();
 
     
 
-    end_window();
+    exit_side_t side = read_comic(mode, head);
+    
+    // end_window();
+    MagickWandTerminus();
     CAMLreturn(Val_unit);
 }

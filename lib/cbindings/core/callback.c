@@ -15,25 +15,29 @@
 //                                                                                            //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
+#define CAML_NAME_SPACE
 
 #include "callback.h"
 #include "caml/mlvalues.h"
 #include "caml/callback.h"
 #include "caml/memory.h"
 #include <stddef.h>
+#include <stdio.h>
 
 #define c_comic_of_zip "c_comic_of_zip"
 #define c_list_len "c_list_len"
 
-caml_comic_t caml_comic_of_zip(value path) {
+CAMLprim caml_comic_t caml_comic_of_zip(value path) {
     CAMLparam1(path);
+    CAMLlocal1(res);
     static const value* closure = NULL;
     if (!closure) closure = caml_named_value(c_comic_of_zip);
-    return caml_callback(*closure, path);
+    res = caml_callback(*closure, path);
+    CAMLreturn(res);
 }
 
 
-size_t caml_list_len(value list) {
+CAMLprim size_t caml_list_len(value list) {
     CAMLparam1(list);
     CAMLlocal1(len);
     static const value* closure = NULL;

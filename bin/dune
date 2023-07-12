@@ -1,4 +1,4 @@
 (executable
  (public_name yomu)
  (name yomu)
- (libraries commandline))
+ (libraries commandline libyomu))

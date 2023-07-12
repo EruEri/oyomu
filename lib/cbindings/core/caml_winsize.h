@@ -15,13 +15,13 @@
 //                                                                                            //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifndef __CAML_WINSIZE_H__
+#define __CAML_WINSIZE_H__
 
-#ifndef __CALLBACK_H__
-#define __CALLBACK_H__
+#include "caml/misc.h"
+#include "caml/mlvalues.h"
 
-#include "comic.h"
+CAMLprim value caml_winsize(value unit);
 
-CAMLprim caml_comic_t caml_comic_of_zip(value path);
-CAMLprim size_t caml_list_len(value list);
 
 #endif

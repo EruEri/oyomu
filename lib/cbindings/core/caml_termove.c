@@ -15,7 +15,12 @@
 //                                                                                            //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "termove.h"
+#include "caml_termove.h"
+#include "caml/memory.h"
+#include "caml/mlvalues.h"
+#include "caml/memory.h"
+#include "caml/misc.h"
+#include "caml/callback.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -30,6 +35,48 @@ const char* LOWER_LEFT_CORNER = "└";
 const char* LOWER_RIGTH_CORNER = "┘";
 const char* HORIZONTAL_LINE = "─"; // "─" != '-'
 const char* VERTICAL_LINE = "│";
+
+
+struct termios raw;
+struct termios orig_termios;
+
+void enableRawMode() {
+    tcgetattr(STDIN_FILENO, &orig_termios);
+    struct termios raw = orig_termios;
+  
+    raw.c_lflag &= ~(ECHO | ICANON);
+    // raw.c_lflag &= ~(ICANON);
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+}
+
+void disableRawMode() {
+  raw.c_lflag |= (ECHO | ICANON);  
+  tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
+}
+
+void start_window() {
+    enableRawMode();
+    write(STDOUT_FILENO, NEW_SCREEN_BUFF_SEQ, strlen(NEW_SCREEN_BUFF_SEQ));
+}
+
+void end_window() {
+    write(STDOUT_FILENO, END_SRCEEN_BUFF_SEQ, strlen(END_SRCEEN_BUFF_SEQ));
+    disableRawMode();
+}
+
+CAMLprim value caml_enable_raw_mode(value unit) {
+    CAMLparam1(unit);
+    enableRawMode();
+    CAMLreturn(unit);
+}
+
+CAMLprim value caml_disable_raw_mode(value unit) {
+    CAMLparam1(unit);
+    disableRawMode();
+    CAMLreturn(unit);
+}
+
+
 
 void set_cursor_at(unsigned int line, unsigned int colmn) {
     fprintf(stdout, "\033[%u;%uf", line, colmn);

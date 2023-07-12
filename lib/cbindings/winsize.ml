@@ -15,7 +15,12 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-module App = App
-module Error = Error
-module Comic = Comic
-module Ccallback = Ccallback
+
+type t = {
+  ws_row: int;
+  ws_col: int;
+  ws_xpixel: int;
+  ws_ypixel: int
+}
+
+external get: unit -> t = "caml_winsize"

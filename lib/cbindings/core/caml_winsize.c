@@ -15,13 +15,23 @@
 //                                                                                            //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
+#include "caml_winsize.h"
+#include "caml/memory.h"
+#include "caml/alloc.h"
+#include "caml/mlvalues.h"
+#include <sys/ttycom.h>
+#include <sys/ioctl.h>
+#include <termios.h>
 
-#ifndef __CALLBACK_H__
-#define __CALLBACK_H__
-
-#include "comic.h"
-
-CAMLprim caml_comic_t caml_comic_of_zip(value path);
-CAMLprim size_t caml_list_len(value list);
-
-#endif
+CAMLprim value caml_winsize(value unit) {
+    CAMLparam1(unit);
+    CAMLlocal1(block);
+    struct winsize ws;
+    ioctl(0, TIOCGWINSZ, &ws);
+    block = caml_alloc_tuple(4);
+    Store_field(block, 0, Val_int(ws.ws_row));
+    Store_field(block, 1, Val_int(ws.ws_col));
+    Store_field(block, 2, Val_int(ws.ws_xpixel));
+    Store_field(block, 3, Val_int(ws.ws_ypixel));
+    CAMLreturn(block);
+}
