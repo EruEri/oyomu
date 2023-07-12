@@ -40,6 +40,8 @@ void start_window();
 
 CAMLprim value caml_enable_raw_mode(value unit);
 
+CAMLprim value caml_disable_raw_mode(value unit);
+
 void set_cursor_at(unsigned int line, unsigned int colmn);
 
 void move_down(unsigned int l);

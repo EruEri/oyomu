@@ -2,11 +2,11 @@
 
 (library
  (name cbindings)
- (libraries dune-configurator libyomu)
- (install_c_headers comic display callback )
+ (libraries dune-configurator)
+;  (install_c_headers display callback )
  (foreign_stubs
   (language c)
-  (names comic display callback caml_termove caml_winsize)
+  (names display caml_termove caml_winsize caml_magickWand)
   (flags
    (:include cflags_chafa.sexp)
    (:include cflags_MagickWand.sexp)

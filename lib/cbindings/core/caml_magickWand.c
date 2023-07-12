@@ -65,6 +65,7 @@ CAMLprim value caml_destroy_magick_wand(value wand) {
 }
 
 CAMLprim value caml_magick_read_image_blob(value wand, value string_blob) {
+    CAMLparam2(wand, string_blob);
     MagickWand* magick = MagickWand_val(wand);
     const char* content = String_val(string_blob);
     size_t len = caml_string_length(string_blob);

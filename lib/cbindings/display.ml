@@ -27,9 +27,3 @@ type render_mode =
   | SIXEL
   | SERVER
 
-external c_comic_read: render_mode -> string list -> unit -> unit = "caml_read_comics"
-
-let comic_read render_mode collection = 
-  match render_mode with
-  | SERVER -> failwith "todo"
-  | (Iterm | Kitty | SIXEL | NONE) -> c_comic_read render_mode collection
