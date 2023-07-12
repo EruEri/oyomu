@@ -1,0 +1,3 @@
+(library
+ (name commandline)
+ (libraries cmdliner xdg libyomu util))

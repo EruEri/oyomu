@@ -1,0 +1,25 @@
+(include_subdirs unqualified)
+
+(library
+ (name cbindings)
+ (libraries dune-configurator)
+ (install_c_headers comic)
+ (foreign_stubs
+  (language c)
+  (names comic)
+  (flags
+   (:include cflags_chafa.sexp)
+   (:include cflags_MagickWand.sexp)
+   (-fPIC)))
+ (c_library_flags
+  (:include clibrary_flags_chafa.sexp)
+  (:include clibrary_flags_MagickWand.sexp)))
+
+(rule
+ (targets
+  cflags_chafa.sexp
+  clibrary_flags_chafa.sexp
+  cflags_MagickWand.sexp
+  clibrary_flags_MagickWand.sexp)
+ (action
+  (run ./config/discover.exe)))

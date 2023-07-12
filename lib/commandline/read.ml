@@ -1,0 +1,59 @@
+(**********************************************************************************************)
+(*                                                                                            *)
+(* This file is part of Yomu: A comic reader                                                  *)
+(* Copyright (C) 2023 Yves Ndiaye                                                             *)
+(*                                                                                            *)
+(* Yomu is free software: you can redistribute it and/or modify it under the terms            *)
+(* of the GNU General Public License as published by the Free Software Foundation,            *)
+(* either version 3 of the License, or (at your option) any later version.                    *)
+(*                                                                                            *)
+(* Yomu is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;          *)
+(* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR           *)
+(* PURPOSE.  See the GNU General Public License for more details.                             *)
+(* You should have received a copy of the GNU General Public License along with Yomu.         *)
+(* If not, see <http://www.gnu.org/licenses/>.                                                *)
+(*                                                                                            *)
+(**********************************************************************************************)
+
+
+open Cmdliner
+
+let name = "read"
+
+type t = {
+  files: string list
+}
+
+let file_term =
+  let linfo = Arg.info [] ~docv:"<FILES.(cbz|zip)>" ~doc:"Archive of the comic. The archives must be zip archive" in
+  Arg.(non_empty & pos_all non_dir_file [] & linfo)
+
+
+let cmd_term run =
+  let combine files =
+    run @@ { files }
+  in
+  Term.(
+    const combine
+    $ file_term
+  )
+
+
+let cmd_doc = "Read comics"
+
+let cmd_man =     
+  [
+    `S Manpage.s_description;
+    `P "Read commic"; 
+  ]
+
+let cmd run =
+  let info = Cmd.info name ~doc:cmd_doc ~man:cmd_man in
+  Cmd.v info (cmd_term run)
+
+let run cmd_read =
+  let { files } = cmd_read in
+  let _ = files in
+  ()
+
+let command = cmd run
