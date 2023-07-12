@@ -18,11 +18,13 @@
 
 #include "MagickCore/magick-type.h"
 #include "MagickWand/MagickWand.h"
+#include "MagickWand/magick-image.h"
 #include "caml/memory.h"
 #include "caml/alloc.h"
 #include "caml/misc.h"
 #include "caml/mlvalues.h"
 #include <stddef.h>
+#include <sys/_types/_ssize_t.h>
 #define CAML_NAME_SPACE
 
 value Val_MagickWand(MagickWand* ptr) {
@@ -68,4 +70,46 @@ CAMLprim value caml_magick_read_image_blob(value wand, value string_blob) {
     size_t len = caml_string_length(string_blob);
     MagickBooleanType status = MagickReadImageBlob(magick, content, len);
     return (status == MagickTrue) ? Val_true : Val_true;
+}
+
+CAMLprim value magick_get_image_width(value magick_wand) {
+    CAMLparam1(magick_wand);
+    MagickWand* magick = MagickWand_val(magick_wand);
+    size_t image_width = MagickGetImageWidth(magick);
+    CAMLreturn(caml_copy_int64(image_width));
+}
+
+CAMLprim value magick_get_image_height(value magick_wand) {
+    CAMLparam1(magick_wand);
+    MagickWand* magick = MagickWand_val(magick_wand);
+    size_t image_width = MagickGetImageHeight(magick);
+    CAMLreturn(caml_copy_int64(image_width));
+}
+
+CAMLprim value caml_magick_export_image_pixels(
+    value wand, value x, value y, value columns,
+    value rows, value map, value storage, value pixels
+) {
+    CAMLparam5(wand, x, y, columns, rows);
+    CAMLxparam3(map, storage, pixels);
+    CAMLlocal1(res);
+    MagickWand* magick = MagickWand_val(wand);
+    const ssize_t cx = Int64_val(x);
+    const ssize_t cy = Int64_val(y);
+    const size_t ccolumns = Int64_val(columns);
+    const size_t crows = Int64_val(rows);
+    const char* cmap = String_val(map);
+    const StorageType cstorage = Int_val(storage);
+    unsigned char* cpixels = Bytes_val(pixels);
+    MagickStatusType status = MagickExportImagePixels(
+        magick, cx, cy, ccolumns, crows, cmap, cstorage, cpixels);
+
+    res = (status == MagickTrue) ? Val_true : Val_true;
+    CAMLreturn(res);
+}
+
+CAMLprim value caml_magick_export_image_pixels_bytecode(value* argv, int argn) {
+    return caml_magick_export_image_pixels(argv[0], argv[1], argv[2], 
+    argv[3], argv[4], argv[5], argv[6], argv[7]
+    );
 }
