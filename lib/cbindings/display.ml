@@ -17,7 +17,6 @@
 
  
 
-external enable_raw_mode: unit -> unit = "caml_enable_raw_mode"
 
 
 type render_mode = 

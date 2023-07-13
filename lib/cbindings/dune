@@ -6,7 +6,7 @@
 ;  (install_c_headers display callback )
  (foreign_stubs
   (language c)
-  (names display caml_termove caml_winsize caml_magickWand)
+  (names caml_chafa caml_termove caml_winsize caml_magickWand)
   (flags
    (:include cflags_chafa.sexp)
    (:include cflags_MagickWand.sexp)

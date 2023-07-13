@@ -15,8 +15,48 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-module App = App
-module Error = Error
-module Comic = Comic
-module Ccallback = Ccallback
-module Drawing = Drawing
+type 'a t = 'a list * 'a list
+
+
+exception ZipperOutLeft
+exception ZipperOutRight
+
+let left = function
+| [], _ -> raise ZipperOutLeft
+| t::q, rhs -> q, t::rhs
+
+let right = function
+| _, [] -> raise ZipperOutRight
+| lhs, t::q -> t::lhs, q
+
+let is_at_start = function
+| [], _ -> true
+| _::_, _ -> false
+
+let is_at_end = function
+| _, [] -> true
+| _, _::_ -> false
+
+let of_list list: 'a t = 
+  list, []
+
+let of_list_end list: 'a t = 
+  [], List.rev list
+
+let top_left = function
+| [], _ -> None
+| t::_, _ -> Some t
+
+let replace_current alt :'a t -> 'a t = function
+| ([], _) as z -> z
+| _::q, rhs -> alt::q, rhs  
+
+
+let rec action ?(ignored = false) f zipper = 
+  let res = f ignored zipper in
+  try match res with
+  | `Right -> action  f @@ (right zipper)
+  | `Left -> action f @@ left zipper
+  | `Ignore -> action f zipper
+  | `Quit -> res
+  with _ -> res

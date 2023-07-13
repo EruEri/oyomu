@@ -20,7 +20,16 @@ open Cmdliner
 
 let name = "read"
 
+let pixels_modes = let open Cbindings.Chafa in [
+  ("symbols", CHAFA_PIXEL_MODE_SYMBOLS);
+  ("sixels", CHAFA_PIXEL_MODE_SIXELS);
+  ("kitty", CHAFA_PIXEL_MODE_KITTY);
+  ("iterm", CHAFA_PIXEL_MODE_ITERM2);
+  ("max", CHAFA_PIXEL_MODE_MAX);
+]
+
 type t = {
+  mode: Cbindings.Chafa.pixel_mode;
   files: string list
 }
 
@@ -28,14 +37,24 @@ let file_term =
   let linfo = Arg.info [] ~docv:"<FILES.(cbz|zip)>" ~doc:"Archive of the comic. The archives must be zip archive" in
   Arg.(non_empty & pos_all non_dir_file [] & linfo)
 
+let pixel_term = 
+  Arg.(
+    value 
+    & opt (enum pixels_modes) CHAFA_PIXEL_MODE_SYMBOLS 
+    & info ["pixel"; "p"]
+    ~docv:"PIXEL_MODE"
+    ~doc:"pixel mode to use to render the images"
+  )
 
 let cmd_term run =
-  let combine files =
-    run @@ { files }
+  let combine files mode =
+    run @@ { files; mode }
   in
   Term.(
     const combine
     $ file_term
+    $ pixel_term
+
   )
 
 
@@ -52,11 +71,13 @@ let cmd run =
   Cmd.v info (cmd_term run)
 
 let run cmd_read =
-  let { files } = cmd_read in
+  let { files; mode } = cmd_read in
+  ignore files;
   (* let file = List.hd files in
   let comic = Libyomu.Comic.comic_of_zip file in
   let _ = comic in *)
-  let () = Cbindings.Display.comic_read Iterm files () in
+  (* let () = Cbindings.Display.comic_read Iterm files () in *)
+  let () = Libyomu.Drawing.read_comics mode files () in
   ()
 
 let command = cmd run

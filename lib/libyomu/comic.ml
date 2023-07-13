@@ -27,6 +27,12 @@ type comic = {
   pages: page list
 }
 
+(** Either an unzip comic or it archive path *)
+type reading_item = (comic, string) Either.t
+
+type reading_collection = reading_item list
+
+
 type collection = comic list
 
 

@@ -20,9 +20,9 @@ external enable_raw_mode: unit -> unit = "caml_enable_raw_mode"
 external disable_raw_mode: unit -> unit = "caml_disable_raw_mode"
 
 
-let new_screen_buf_seq = "\033[?1049h\033[H"
-let end_screen_buf_seq = "\033[?1049l"
-let clear_console = "\033[2J"
+let new_screen_buf_seq = "\u{001B}[?1049h\u{001B}[H"
+let end_screen_buf_seq = "\u{001B}[?1049l"
+let clear_console = "\u{001B}[2J"
 let upper_left_corner = "┌"
 let upper_right_corner = "┐"
 let lower_left_corner = "└"
@@ -32,10 +32,10 @@ let vertical_line = "│"
 
 
 let set_cursor_at = 
-  Printf.printf "\033[%u;%uf%!"
+  Printf.printf "\u{001B}[%u;%uf%!"
 
 let move_down = 
-  Printf.printf "\033[%uB%!"
+  Printf.printf "\u{001B}[%uB%!"
 
 let clear () = 
   Printf.printf "%s%!" clear_console
@@ -47,7 +47,7 @@ let draw_horizontal_line () =
   Printf.printf "%s%!" horizontal_line
 
 let move_forward_column = 
-  Printf.printf "\033[%uC%!"
+  Printf.printf "\u{001B}[%uC%!"
 
 let draw_string = 
   Printf.printf "%s%!"

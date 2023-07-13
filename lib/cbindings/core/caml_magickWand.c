@@ -73,14 +73,14 @@ CAMLprim value caml_magick_read_image_blob(value wand, value string_blob) {
     return (status == MagickTrue) ? Val_true : Val_true;
 }
 
-CAMLprim value magick_get_image_width(value magick_wand) {
+CAMLprim value caml_magick_get_image_width(value magick_wand) {
     CAMLparam1(magick_wand);
     MagickWand* magick = MagickWand_val(magick_wand);
     size_t image_width = MagickGetImageWidth(magick);
     CAMLreturn(caml_copy_int64(image_width));
 }
 
-CAMLprim value magick_get_image_height(value magick_wand) {
+CAMLprim value caml_magick_get_image_height(value magick_wand) {
     CAMLparam1(magick_wand);
     MagickWand* magick = MagickWand_val(magick_wand);
     size_t image_width = MagickGetImageHeight(magick);
