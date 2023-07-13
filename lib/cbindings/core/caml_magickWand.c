@@ -66,11 +66,13 @@ CAMLprim value caml_destroy_magick_wand(value wand) {
 
 CAMLprim value caml_magick_read_image_blob(value wand, value string_blob) {
     CAMLparam2(wand, string_blob);
+    CAMLlocal1(ret);
     MagickWand* magick = MagickWand_val(wand);
     const char* content = String_val(string_blob);
     size_t len = caml_string_length(string_blob);
     MagickBooleanType status = MagickReadImageBlob(magick, content, len);
-    return (status == MagickTrue) ? Val_true : Val_true;
+    ret = (status == MagickTrue) ? Val_true : Val_false;
+    CAMLreturn(ret);
 }
 
 CAMLprim value caml_magick_get_image_width(value magick_wand) {
@@ -105,7 +107,7 @@ CAMLprim value caml_magick_export_image_pixels(
     MagickStatusType status = MagickExportImagePixels(
         magick, cx, cy, ccolumns, crows, cmap, cstorage, cpixels);
 
-    res = (status == MagickTrue) ? Val_true : Val_true;
+    res = (status == MagickTrue) ? Val_true : Val_false;
     CAMLreturn(res);
 }
 

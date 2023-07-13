@@ -5,7 +5,7 @@
 (generate_opam_files true)
 
 (source
- (github EruEri/yomu))
+ (github EruEri/oyomu))
 
 (authors "EruEri")
 

@@ -43,7 +43,7 @@ let pixel_term =
     & opt (enum pixels_modes) CHAFA_PIXEL_MODE_SYMBOLS 
     & info ["pixel"; "p"]
     ~docv:"PIXEL_MODE"
-    ~doc:"pixel mode to use to render the images"
+    ~doc:("pixel mode to use to render the images" ^ (doc_alts_enum ~quoted:true pixels_modes))
   )
 
 let cmd_term run =

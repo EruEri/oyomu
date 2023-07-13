@@ -75,7 +75,9 @@ let draw_page mode (page: Comic.page) =
         magick_wand ~x:0L ~y:0L ~columns:width ~rows:height
         "RGBA" CharPixel pixels
       in
-      let () = draw_image winsize mode ~width ~height ~row_stride pixels in
+      let () = match _exported with
+        | true -> draw_image winsize mode ~width ~height ~row_stride pixels 
+        | false -> draw_error_message "cannot export" in
       ()
   in
   let () = MagickWand.destroy_magick_wand magick_wand in

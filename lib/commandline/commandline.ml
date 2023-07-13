@@ -18,7 +18,7 @@
 module Main = struct
   open Cmdliner
 
-  let name = "yomu"
+  let name = "oyomu"
   let version =
     match Build_info.V1.version () with
     | None ->
