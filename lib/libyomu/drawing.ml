@@ -117,7 +117,7 @@ let read_choice () =
 let read_page comic_name mode ignored zipper = 
   let (page: Comic.page option) = Zipper.top_left zipper in
   match page with 
-  | None -> `Quit
+  | None -> `Right
   | Some page -> 
     let () = match ignored with
       | true -> ()
@@ -142,6 +142,26 @@ let read_item mode (item: ('a, string) Either.t) =
     let res = Zipper.action (read_page name mode) z_pages in
     c, res
   
+let read_collection mode = 
+  Zipper.action_alt (fun zipper -> 
+    let current_opt = Zipper.top_left zipper in
+    match current_opt with
+      | None -> zipper, `Right
+      | Some either_comic -> 
+        let comic, res = read_item mode either_comic in
+        let zipper = 
+          match either_comic with
+          | Either.Right _ -> Zipper.replace_current (Either.left comic) zipper
+          | Either.Left _ -> zipper
+        in
+        let res = begin match res with
+          | `Ignore -> failwith "Unreachable: Ignore doesnt change the state of the zipper"
+          | `Left | `Quit | `Right as e -> e
+        end
+        in
+        zipper, res
+  )
+
 let read_comics mode (archives: string list) () = 
   let () = Termove.start_window () in
   let () = MagickWand.magick_wand_genesis () in
@@ -149,8 +169,7 @@ let read_comics mode (archives: string list) () =
   let collection = List.map Either.right archives in
   let z_collections = Zipper.of_list collection in
 
-  let current = Option.get @@ Zipper.top_left z_collections in
-  let _comic, _res = read_item mode current in
+  let _side = read_collection mode z_collections in
 
   let () = Termove.end_window () in
   let () = MagickWand.magick_wand_terminus () in

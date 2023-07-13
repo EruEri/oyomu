@@ -57,6 +57,13 @@ let status = function
   let r = List.length rhs in
   l, r, l + r
 
+let rec action_alt f zipper = 
+  let new_zipper, res = f zipper in
+  try match res with
+  | `Right -> action_alt f @@ left new_zipper
+  | `Left -> action_alt f @@ right new_zipper
+  | `Quit -> res
+  with _ -> res
 
 
 let rec action ?(ignored = false) f zipper = 
