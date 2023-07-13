@@ -25,7 +25,6 @@ let pixels_modes = let open Cbindings.Chafa in [
   ("sixels", CHAFA_PIXEL_MODE_SIXELS);
   ("kitty", CHAFA_PIXEL_MODE_KITTY);
   ("iterm", CHAFA_PIXEL_MODE_ITERM2);
-  ("max", CHAFA_PIXEL_MODE_MAX);
 ]
 
 type t = {

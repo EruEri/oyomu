@@ -15,7 +15,6 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-module Display = Display
 module MagickWand = MagickWand
 module Termove = Termove
 module Winsize = Winsize

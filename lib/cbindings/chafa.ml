@@ -24,7 +24,6 @@ type pixel_mode =
   | CHAFA_PIXEL_MODE_SIXELS
   | CHAFA_PIXEL_MODE_KITTY
   | CHAFA_PIXEL_MODE_ITERM2
-  | CHAFA_PIXEL_MODE_MAX
 
 type pixel_type = 
   (* 32 bits per pixel *)
@@ -45,6 +44,7 @@ type pixel_type =
 external chafa_canvas_config_new: unit -> canvas_config = "caml_chafa_canvas_config_new"
 external chafa_canvas_config_set_pixel_mode: canvas_config -> pixel_mode -> unit = "caml_chafa_canvas_config_set_pixel_mode"
 external chafa_canvas_config_set_geometry: canvas_config -> width:int -> height:int -> unit = "caml_chafa_canvas_config_set_geometry"
+external chafa_canvas_config_set_cell_geometry: canvas_config -> width:int -> height:int -> unit = "caml_chafa_canvas_config_set_cell_geometry"
 external chafa_canvas_new: ?config:canvas_config -> unit -> canvas = "caml_chafa_canvas_new"
 external chafa_canvas_draw_all_pixels: canvas -> pixel_type -> bytes -> width:int -> height:int -> row_stride:int -> unit = 
   "caml_chafa_canvas_draw_all_pixels_bytecode" "caml_chafa_canvas_draw_all_pixels"

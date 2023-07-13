@@ -70,6 +70,15 @@ CAMLprim value caml_chafa_canvas_config_set_geometry(value config, value width, 
     CAMLreturn(Val_unit);
 }
 
+CAMLprim value caml_chafa_canvas_config_set_cell_geometry(value config, value width, value height) {
+    CAMLparam3(config, width, height);
+    ChafaCanvasConfig* cconfig = ChafaCanvasConfig_val(config);
+    int cwidth = Int_val(width);
+    int cheight = Int_val(height);
+    chafa_canvas_config_set_cell_geometry(cconfig, cwidth, cheight);
+    CAMLreturn(Val_unit);
+}
+
 CAMLprim value caml_chafa_canvas_new(value config_opt, value unit) {
     CAMLparam2(config_opt, unit);
     CAMLlocal2(ret, some);

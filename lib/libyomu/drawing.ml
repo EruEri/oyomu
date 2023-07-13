@@ -18,13 +18,19 @@
 open Cbindings
 
 let nb_channel = 4L
-let scale = 0.93
+(* let scale = 0.90 *)
 
 (* let draw_page comic_name ~n ~out_of page () = 
   let open Termove in
   let winsize = Winsize.get () in
   let comic_name = String.sub comic_name 0 (max (String.length comic_name) winsize.ws_col) in
   let () = set_cursor_at 0 0 in *)
+
+let base_fac = 90
+
+let scale ?(fac = base_fac) n = 
+  n * fac / 100
+
 
 let draw_error_message message = 
   let w = Winsize.get () in
@@ -33,20 +39,26 @@ let draw_error_message message =
   Termove.draw_string message
 
 let draw_image (winsize: Winsize.t) mode ~width ~height ~row_stride pixels =
-  let scaled_width = Int.of_float @@ Int.to_float winsize.ws_col *. scale in
-  let scaled_height = Int.of_float @@ Int.to_float winsize.ws_row *. scale in
+  let width = Int64.to_int width in
+  let height = Int64.to_int height in
 
+  let scaled_width, scaled_height = match mode with
+    | Chafa.CHAFA_PIXEL_MODE_SIXELS -> scale winsize.ws_col, scale winsize.ws_row
+    | _ -> scale ~fac:98 winsize.ws_col, scale ~fac:98 winsize.ws_row
+  in
   let config = Chafa.chafa_canvas_config_new () in
-
   let () = Chafa.chafa_canvas_config_set_pixel_mode config mode in 
-  let () = Chafa.chafa_canvas_config_set_geometry ~width:scaled_width ~height:scaled_height config in
+  let () = match mode with
+    | Chafa.CHAFA_PIXEL_MODE_SIXELS -> Chafa.chafa_canvas_config_set_geometry ~width:(2 * scaled_width) ~height:(4 * scaled_height) config
+    | _ -> Chafa.chafa_canvas_config_set_geometry ~width:scaled_width ~height:scaled_height config 
+  in  
   let canvas = Chafa.chafa_canvas_new ~config () in
   let () = Chafa.chafa_canvas_draw_all_pixels
     canvas
     CHAFA_PIXEL_RGBA8_UNASSOCIATED
     pixels
-    ~width:(Int64.to_int width)
-    ~height:(Int64.to_int height)
+    ~width
+    ~height
     ~row_stride:(Int64.to_int row_stride)
   in
   
@@ -71,13 +83,14 @@ let draw_page mode (page: Comic.page) =
       let row_stride = Int64.mul width nb_channel in
       let pixels_len = Int64.(to_int @@ mul row_stride height ) in 
       let pixels = Bytes.create pixels_len in
-      let _exported = MagickWand.magick_export_image_pixels
+      let exported = MagickWand.magick_export_image_pixels
         magick_wand ~x:0L ~y:0L ~columns:width ~rows:height
         "RGBA" CharPixel pixels
       in
-      let () = match _exported with
+      let () = match exported with
         | true -> draw_image winsize mode ~width ~height ~row_stride pixels 
-        | false -> draw_error_message "cannot export" in
+        | false -> draw_error_message "cannot export" 
+      in
       ()
   in
   let () = MagickWand.destroy_magick_wand magick_wand in
