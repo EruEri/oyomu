@@ -20,8 +20,10 @@ external enable_raw_mode: unit -> unit = "caml_enable_raw_mode"
 external disable_raw_mode: unit -> unit = "caml_disable_raw_mode"
 
 
-let new_screen_buf_seq = "\u{001B}[?1049h\u{001B}[H"
-let end_screen_buf_seq = "\u{001B}[?1049l"
+let seq_new_screen_buf = "\u{001B}[?1049h\u{001B}[H"
+let seq_end_screen_buf = "\u{001B}[?1049l"
+let seq_clear_saved_line = "\u{001B}[3J"
+let seq_clear_screen = "\u{001B}[2J"
 let clear_console = "\u{001B}[2J"
 let upper_left_corner = "┌"
 let upper_right_corner = "┐"
@@ -58,19 +60,18 @@ let draw_char =
 let set_cursor_next_line line =
   set_cursor_at (line + 1) 0
 
-let redraw_empty (winsize: Winsize.t) = 
-  
+
+let redraw_empty (_winsize: Winsize.t) = 
+  let () = draw_string seq_clear_saved_line in
+  let () = draw_string seq_clear_screen in
   let () = set_cursor_at 0 0 in
-  let () = for _ = 0 to winsize.ws_col * winsize.ws_row do 
-    draw_char ' '
-  done in
   ()
 
 let start_window () = 
   let () = enable_raw_mode () in
-  Printf.printf "%s%!" new_screen_buf_seq
+  Printf.printf "%s%!" seq_new_screen_buf
 
 let end_window () = 
-  let () = Printf.printf "%s%!" new_screen_buf_seq in
+  let () = Printf.printf "%s%!" seq_end_screen_buf in
   let () = disable_raw_mode () in
   ()
