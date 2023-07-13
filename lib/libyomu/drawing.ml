@@ -73,7 +73,7 @@ let draw_image (winsize: Winsize.t) mode ~width ~height ~row_stride pixels =
   let () = Chafa.chafa_canvas_config_unref config in
   ()
 
-let draw_page mode (page: Comic.page) = 
+let draw_page comic_name mode (page: Comic.page) = 
   let winsize = Winsize.get () in
   let () = Termove.redraw_empty () in
   let () = Termove.set_cursor_at 0 0 in
@@ -98,6 +98,8 @@ let draw_page mode (page: Comic.page) =
       in
       ()
   in
+  let () = Termove.set_cursor_at (winsize.ws_row) 0 in
+  let () = Termove.draw_string comic_name in
   let () = MagickWand.destroy_magick_wand magick_wand in
   () 
 
@@ -112,7 +114,7 @@ let read_choice () =
   | 'q' | 'Q' -> `Quit
   | _ -> `Ignore
  
-let read_page mode ignored zipper = 
+let read_page comic_name mode ignored zipper = 
   let (page: Comic.page option) = Zipper.top_left zipper in
   match page with 
   | None -> `Quit
@@ -120,7 +122,7 @@ let read_page mode ignored zipper =
     let () = match ignored with
       | true -> ()
       | false -> 
-        let () = draw_page mode page in
+        let () = draw_page comic_name mode page in
         ()
     in
     let option = read_choice () in
@@ -129,16 +131,16 @@ let read_page mode ignored zipper =
 
 
 let read_item mode (item: ('a, string) Either.t) = 
-  let comic = match item with
+  let Comic.{pages; name} as c = match item with
     | Either.Left comic -> comic
     | Either.Right right ->
       let comic = Comic.comic_of_zip right in
       comic
     in
     
-    let z_pages = Zipper.of_list comic.pages in 
-    let res = Zipper.action (read_page mode) z_pages in
-    comic, res
+    let z_pages = Zipper.of_list pages in 
+    let res = Zipper.action (read_page name mode) z_pages in
+    c, res
   
 let read_comics mode (archives: string list) () = 
   let () = Termove.start_window () in
