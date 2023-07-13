@@ -1,6 +1,6 @@
 (lang dune 3.2)
 
-(name yomu)
+(name oyomu)
 
 (generate_opam_files true)
 
@@ -15,7 +15,7 @@
 
 
 (package
- (name yomu)
+ (name oyomu)
  (synopsis "A comic reader")
  (depends ocaml dune cmdliner xdg unix)
  (tags

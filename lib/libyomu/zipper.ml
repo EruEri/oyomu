@@ -62,7 +62,7 @@ let status = function
 let rec action ?(ignored = false) f zipper = 
   let res = f ignored zipper in
   try match res with
-  | `Right -> action  f @@ (left zipper)
+  | `Right -> action f @@ left zipper
   | `Left -> action f @@ right zipper
   | `Ignore -> action ~ignored:true f zipper
   | `Quit -> res

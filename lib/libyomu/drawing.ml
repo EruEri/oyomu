@@ -95,12 +95,11 @@ let read_choice () =
 let read_page mode ignored zipper = 
   let (page: Comic.page option) = Zipper.top_left zipper in
   match page with 
-  | None -> `Left
+  | None -> `Quit
   | Some page -> 
     let () = match ignored with
       | true -> ()
       | false -> 
-        let () = ignore (page, mode) in
         let () = draw_page mode page in
         ()
     in
@@ -110,7 +109,6 @@ let read_page mode ignored zipper =
 
 
 let read_item mode (item: ('a, string) Either.t) = 
-  let () = ignore mode in
   let comic = match item with
     | Either.Left comic -> comic
     | Either.Right right ->
@@ -129,8 +127,8 @@ let read_comics mode (archives: string list) () =
   let collection = List.map Either.right archives in
   let z_collections = Zipper.of_list collection in
 
-  let current = Zipper.top_left z_collections in
-  let _comic, _res = read_item mode (Option.get current) in
+  let current = Option.get @@ Zipper.top_left z_collections in
+  let _comic, _res = read_item mode current in
 
   let () = Termove.end_window () in
   let () = MagickWand.magick_wand_terminus () in
