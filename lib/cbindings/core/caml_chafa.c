@@ -21,6 +21,8 @@
 #include "caml/mlvalues.h"
 #include "caml/alloc.h"
 
+extern int printf(const char*, ...);
+
 value Val_ChafaCanvasConfig(ChafaCanvasConfig* ptr) {
     value v = caml_alloc(1, Abstract_tag);
     *((ChafaCanvasConfig **) Data_abstract_val(v)) = ptr;
@@ -70,10 +72,11 @@ CAMLprim value caml_chafa_canvas_config_set_geometry(value config, value width, 
 
 CAMLprim value caml_chafa_canvas_new(value config_opt, value unit) {
     CAMLparam2(config_opt, unit);
-    CAMLlocal1(ret);
+    CAMLlocal2(ret, some);
     ChafaCanvasConfig* config = NULL;
     if (Is_some(config_opt)) {
-        config = ChafaCanvasConfig_val(Some_val(config));
+        some = Some_val(config_opt);
+        config = ChafaCanvasConfig_val(some);
     }
     ChafaCanvas* ccanvas = chafa_canvas_new(config);
     ret = Val_ChafaCanvas(ccanvas);

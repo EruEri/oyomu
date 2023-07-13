@@ -35,7 +35,9 @@ let draw_error_message message =
 let draw_image (winsize: Winsize.t) mode ~width ~height ~row_stride pixels =
   let scaled_width = Int.of_float @@ Int.to_float winsize.ws_col *. scale in
   let scaled_height = Int.of_float @@ Int.to_float winsize.ws_row *. scale in
+
   let config = Chafa.chafa_canvas_config_new () in
+
   let () = Chafa.chafa_canvas_config_set_pixel_mode config mode in 
   let () = Chafa.chafa_canvas_config_set_geometry ~width:scaled_width ~height:scaled_height config in
   let canvas = Chafa.chafa_canvas_new ~config () in
@@ -47,6 +49,7 @@ let draw_image (winsize: Winsize.t) mode ~width ~height ~row_stride pixels =
     ~height:(Int64.to_int height)
     ~row_stride:(Int64.to_int row_stride)
   in
+  
   let content = Chafa.chafa_canvas_print canvas in
   let () = Termove.draw_string content in
   let () = Chafa.chafa_canvas_unref canvas in
@@ -97,6 +100,7 @@ let read_page mode ignored zipper =
     let () = match ignored with
       | true -> ()
       | false -> 
+        let () = ignore (page, mode) in
         let () = draw_page mode page in
         ()
     in
@@ -106,11 +110,14 @@ let read_page mode ignored zipper =
 
 
 let read_item mode (item: ('a, string) Either.t) = 
+  let () = ignore mode in
   let comic = match item with
     | Either.Left comic -> comic
     | Either.Right right ->
-      Comic.comic_of_zip right
+      let comic = Comic.comic_of_zip right in
+      comic
     in
+    
     let z_pages = Zipper.of_list comic.pages in 
     let res = Zipper.action (read_page mode) z_pages in
     comic, res

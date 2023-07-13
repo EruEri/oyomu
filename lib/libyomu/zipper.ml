@@ -51,12 +51,19 @@ let replace_current alt :'a t -> 'a t = function
 | ([], _) as z -> z
 | _::q, rhs -> alt::q, rhs  
 
+let status = function
+| lhs, rhs -> 
+  let l = List.length lhs in 
+  let r = List.length rhs in
+  l, r, l + r
+
+
 
 let rec action ?(ignored = false) f zipper = 
   let res = f ignored zipper in
   try match res with
-  | `Right -> action  f @@ (right zipper)
-  | `Left -> action f @@ left zipper
-  | `Ignore -> action f zipper
+  | `Right -> action  f @@ (left zipper)
+  | `Left -> action f @@ right zipper
+  | `Ignore -> action ~ignored:true f zipper
   | `Quit -> res
   with _ -> res

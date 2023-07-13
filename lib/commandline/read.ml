@@ -72,8 +72,9 @@ let cmd run =
 
 let run cmd_read =
   let { files; mode } = cmd_read in
-  ignore files;
-  (* let file = List.hd files in
+  (* ignore files;
+  ignore mode;
+  let file = List.hd files in
   let comic = Libyomu.Comic.comic_of_zip file in
   let _ = comic in *)
   (* let () = Cbindings.Display.comic_read Iterm files () in *)
