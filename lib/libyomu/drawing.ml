@@ -31,6 +31,13 @@ let base_fac = 90
 let scale ?(fac = base_fac) n = 
   n * fac / 100
 
+let sixel_facs = 
+  match Cbindings.OsInfo.macos with
+  | true -> 2, 4
+  | false -> 1, 2
+
+let sixel_x_fac = fst sixel_facs
+let sixel_y_fac = snd sixel_facs
 
 let draw_error_message message = 
   let w = Winsize.get () in
@@ -43,15 +50,13 @@ let draw_image (winsize: Winsize.t) mode ~width ~height ~row_stride pixels =
   let height = Int64.to_int height in
 
   let scaled_width, scaled_height = match mode with
-    | Chafa.CHAFA_PIXEL_MODE_SIXELS -> scale winsize.ws_col, scale winsize.ws_row
-    | _ -> scale ~fac:98 winsize.ws_col, scale ~fac:98 winsize.ws_row
+    | Chafa.CHAFA_PIXEL_MODE_SIXELS -> 
+      sixel_x_fac * scale winsize.ws_col, sixel_y_fac * scale winsize.ws_row
+    | _ -> scale winsize.ws_col, scale winsize.ws_row
   in
   let config = Chafa.chafa_canvas_config_new () in
   let () = Chafa.chafa_canvas_config_set_pixel_mode config mode in 
-  let () = match mode with
-    | Chafa.CHAFA_PIXEL_MODE_SIXELS -> Chafa.chafa_canvas_config_set_geometry ~width:(2 * scaled_width) ~height:(4 * scaled_height) config
-    | _ -> Chafa.chafa_canvas_config_set_geometry ~width:scaled_width ~height:scaled_height config 
-  in  
+  let () = Chafa.chafa_canvas_config_set_geometry ~width:scaled_width ~height:scaled_height config in
   let canvas = Chafa.chafa_canvas_new ~config () in
   let () = Chafa.chafa_canvas_draw_all_pixels
     canvas
@@ -70,7 +75,7 @@ let draw_image (winsize: Winsize.t) mode ~width ~height ~row_stride pixels =
 
 let draw_page mode (page: Comic.page) = 
   let winsize = Winsize.get () in
-  let () = Termove.redraw_empty winsize in
+  let () = Termove.redraw_empty () in
   let () = Termove.set_cursor_at 0 0 in
   let magick_wand = MagickWand.new_magick_wand () in
   let created = MagickWand.magick_read_image_blob magick_wand page.data in
