@@ -24,7 +24,6 @@
 #include "caml/misc.h"
 #include "caml/mlvalues.h"
 #include <stddef.h>
-#include <sys/_types/_ssize_t.h>
 #define CAML_NAME_SPACE
 
 value Val_MagickWand(MagickWand* ptr) {
