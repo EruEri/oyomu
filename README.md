@@ -35,16 +35,6 @@ OPTIONS
            'kitty' or 'iterm'
 ```
 
-- MacOS:
-    - Iterm2:
-        - [Sixel](/img/macos_iterm_sixel.png)
-        - [Iterm](/img/macos_iterm_iterm.png)
-- FreeBSD:
-    - WezTerm
-        - []
-        - []
-
-
 
 ### Future
 
