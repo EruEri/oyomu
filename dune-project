@@ -1,4 +1,5 @@
 (lang dune 3.2)
+(version "0.0.1")
 
 (name oyomu)
 
@@ -17,8 +18,8 @@
 (package
  (name oyomu)
  (synopsis "A comic reader")
- (depends ocaml dune cmdliner xdg unix)
+ (depends (ocaml (>= "4.13.0")) (camlzip (>= "1.11")) dune-build-info dune (cmdliner (>= "1.1.0")) xdg unix)
  (tags
-  (topics "to describe" your project)))
+  ( "comic" "reader")))
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/dune-files.html#dune-project
