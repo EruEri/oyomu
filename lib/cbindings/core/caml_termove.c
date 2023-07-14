@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <termios.h>
+#include <sys/ioctl.h>
 
 const char* NEW_SCREEN_BUFF_SEQ = "\033[?1049h\033[H";
 const char* END_SRCEEN_BUFF_SEQ = "\033[?1049l";

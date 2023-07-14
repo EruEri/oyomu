@@ -22,6 +22,7 @@
 #include "caml/mlvalues.h"
 #include <chafa.h>
 #include <termios.h>
+#include <sys/ioctl.h>
 
 extern const char* NEW_SCREEN_BUFF_SEQ;
 extern const char* END_SRCEEN_BUFF_SEQ;

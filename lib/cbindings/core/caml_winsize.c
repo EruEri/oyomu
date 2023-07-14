@@ -19,7 +19,6 @@
 #include "caml/memory.h"
 #include "caml/alloc.h"
 #include "caml/mlvalues.h"
-#include <sys/ttycom.h>
 #include <sys/ioctl.h>
 #include <termios.h>
 
