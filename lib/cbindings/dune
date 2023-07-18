@@ -3,7 +3,7 @@
 (library
  (name cbindings)
  (libraries dune-configurator)
-;  (install_c_headers display callback )
+ ;  (install_c_headers display callback )
  (foreign_stubs
   (language c)
   (names caml_osInfo caml_chafa caml_termove caml_winsize caml_magickWand)

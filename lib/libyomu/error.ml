@@ -27,6 +27,10 @@ type error =
   | Yomu_Not_Initialized
   | DecryptionError of string
   | Already_Existing_name of string
+  | Volume_already_existing of {
+    comic: string;
+    volume: int;
+  }
   | Missing_file of { true_name : string; encrypted_name : string }
   | Init_Error of init_error
   | Non_existing_group of string list
@@ -44,11 +48,13 @@ type error =
 let string_of_error = function
   | Yomu_Not_Initialized ->
       Printf.sprintf
-        "\".hisoka\" directory doesn't exist. Use hisoka init to initialize"
+        "\".oyomu\" directory doesn't exist. Use hisoka init to initialize"
   | No_Option_choosen ->
       "Operation Aborted"
   | No_file_to_decrypt ->
       Printf.sprintf "No File to decrypt"
+  | Volume_already_existing {comic; volume} ->
+      Printf.sprintf "Comic \"%s\": the volume %u already exists" comic volume
   | DecryptionError file ->
       Printf.sprintf "decrptytion error : %s" file
   | Already_Existing_name filename ->

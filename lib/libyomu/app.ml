@@ -22,7 +22,11 @@ let xdg = Xdg.create ~env:Sys.getenv_opt ()
 let xdg_data = Xdg.data_dir xdg
 let xdg_config = Xdg.config_dir xdg
 
+let comics_folder_name = "comics"
+
 let share_yomu = xdg_data // yomu_name
+
+let comics_yomu = share_yomu // comics_folder_name
 
 let config_yomu = xdg_config // yomu_name
 

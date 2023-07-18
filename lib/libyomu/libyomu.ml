@@ -20,3 +20,5 @@ module Error = Error
 module Comic = Comic
 module Ccallback = Ccallback
 module Drawing = Drawing
+module Collection = Collection
+module Init = Initialization

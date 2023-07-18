@@ -16,62 +16,58 @@
 (**********************************************************************************************)
 
 
-open Cmdliner
+let check_exist path () = 
+  match Sys.file_exists path with
+  | true -> ()
+  | false -> failwith @@ "File doesnt exist" ^ path
 
-let name = "read"
+let space level = 
+  String.init level (fun _ -> ' ')
 
-let pixels_modes = let open Cbindings.Chafa in [
-  ("symbols", CHAFA_PIXEL_MODE_SYMBOLS);
-  ("sixels", CHAFA_PIXEL_MODE_SIXELS);
-  ("kitty", CHAFA_PIXEL_MODE_KITTY);
-  ("iterm", CHAFA_PIXEL_MODE_ITERM2);
-]
-
-type t = {
-  mode: Cbindings.Chafa.pixel_mode;
-  files: string list
-}
-
-let file_term =
-  let linfo = Arg.info [] ~docv:"<FILES.(cbz|zip)>" ~doc:"Archive of the comic. The archives must be zip archive" in
-  Arg.(non_empty & pos_all non_dir_file [] & linfo)
-
-let pixel_term = 
-  Arg.(
-    value 
-    & opt (enum pixels_modes) CHAFA_PIXEL_MODE_SYMBOLS 
-    & info ["pixel"; "p"]
-    ~docv:"PIXEL_MODE"
-    ~doc:("pixel mode to use to render the images" ^ (doc_alts_enum ~quoted:true pixels_modes))
-  )
-
-let cmd_term run =
-  let combine files mode =
-    run @@ { files; mode }
-  in
-  Term.(
-    const combine
-    $ file_term
-    $ pixel_term
-
-  )
-
-
-let cmd_doc = "Read comics"
-
-let cmd_man = 
-  [
-    `S Manpage.s_description;
-    `P "Read commic"; 
-  ]
-
-let cmd run =
-  let info = Cmd.info name ~doc:cmd_doc ~man:cmd_man in
-  Cmd.v info (cmd_term run)
-
-let run cmd_read =
-  let { files; mode } = cmd_read in
-  let () = Libyomu.Drawing.read_comics mode files () in
+let list level dir = 
+  let afiles = Sys.readdir dir in
+  let () = 
+  afiles
+    |> Array.iter (fun file -> 
+      Printf.printf "%s|---- %s" (space level) file
+    )
+    in
   ()
 
-let command = cmd run
+(** [volumes comic] returns the path of the [comic] and its content *)
+let volumes comic = 
+  let open App in
+  let path = comics_yomu // comic in
+  match Sys.file_exists path with
+  | true -> path, Some (Sys.readdir path)
+  | false -> path, None
+
+let convert_name index archive = 
+  let extension = Filename.extension archive in
+  Printf.sprintf "%u%s" index extension
+
+
+let are_same_volume lhs rhs =
+  let lhs = Filename.basename lhs in
+  let rhs = Filename.basename rhs in
+  rhs = lhs 
+
+let add ~comic_name ~comic_dir ~comics index comic_archive = 
+  let open App in
+  let indexed_archive = convert_name index comic_archive in
+  let path = comic_dir // indexed_archive in
+  let () = match Array.exists (are_same_volume indexed_archive) comics with
+    | false -> Util.Io.cp comic_archive path
+    | true -> raise @@ Error.(yomu_error @@ Volume_already_existing {comic = comic_name; volume = index})
+  in
+  ()
+  
+
+let _list () = 
+  let comics_path = App.comics_yomu in
+  let () = check_exist comics_path () in
+  let afiles = Sys.readdir comics_path in
+  let () = Array.iter (Printf.printf "%s\n") afiles in 
+  
+  ()
+

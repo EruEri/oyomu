@@ -39,7 +39,8 @@ module Main = struct
   let subcommands =
     [
       Init.command;
-      Read.command
+      Read.command;
+      Add.command
     ]
 
   let parse () = Cmd.group root_info subcommands

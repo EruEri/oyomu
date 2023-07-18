@@ -16,62 +16,17 @@
 (**********************************************************************************************)
 
 
-open Cmdliner
-
-let name = "read"
-
-let pixels_modes = let open Cbindings.Chafa in [
-  ("symbols", CHAFA_PIXEL_MODE_SYMBOLS);
-  ("sixels", CHAFA_PIXEL_MODE_SIXELS);
-  ("kitty", CHAFA_PIXEL_MODE_KITTY);
-  ("iterm", CHAFA_PIXEL_MODE_ITERM2);
-]
-
-type t = {
-  mode: Cbindings.Chafa.pixel_mode;
-  files: string list
-}
-
-let file_term =
-  let linfo = Arg.info [] ~docv:"<FILES.(cbz|zip)>" ~doc:"Archive of the comic. The archives must be zip archive" in
-  Arg.(non_empty & pos_all non_dir_file [] & linfo)
-
-let pixel_term = 
-  Arg.(
-    value 
-    & opt (enum pixels_modes) CHAFA_PIXEL_MODE_SYMBOLS 
-    & info ["pixel"; "p"]
-    ~docv:"PIXEL_MODE"
-    ~doc:("pixel mode to use to render the images" ^ (doc_alts_enum ~quoted:true pixels_modes))
-  )
-
-let cmd_term run =
-  let combine files mode =
-    run @@ { files; mode }
-  in
-  Term.(
-    const combine
-    $ file_term
-    $ pixel_term
-
-  )
+open Util.FileSys
 
 
-let cmd_doc = "Read comics"
+(** [create_yomu_share ()] create the folder [ $XDG_.../share/yomu] *)
+let create_yomu_share () = 
+  create_folder ~on_error:(Error.Create_folder App.share_yomu) App.share_yomu
 
-let cmd_man = 
-  [
-    `S Manpage.s_description;
-    `P "Read commic"; 
-  ]
+(** 
+  [create_yomu_comic ()] create the folder [comic] in [$XDG_.../share/yomu] so 
+  [$XDG_.../share/yomu/comics]
+*)
+let create_yomu_comics () = 
+  create_folder ~on_error:(Error.Create_folder App.comics_yomu) App.comics_yomu
 
-let cmd run =
-  let info = Cmd.info name ~doc:cmd_doc ~man:cmd_man in
-  Cmd.v info (cmd_term run)
-
-let run cmd_read =
-  let { files; mode } = cmd_read in
-  let () = Libyomu.Drawing.read_comics mode files () in
-  ()
-
-let command = cmd run

@@ -43,7 +43,7 @@ let cmd run =
 let run cmd_init =
   let open Util.FileSys in
   let force = cmd_init.force in
-  (* let ( >>= ) = Result.bind in *)
+  let ( >>= ) = Result.bind in
   let is_app_folder_exist = Sys.file_exists App.share_yomu in
   let res =
     if is_app_folder_exist && not force then
@@ -64,22 +64,12 @@ let run cmd_init =
         | Error exn ->
             raise (Input.PassError exn)
       in *)
-      create_folder ~on_error:(Error.Create_folder App.share_yomu) App.share_yomu
-      (* >>= fun app_dir ->
-      let external_file_path = PathBuf.push hisoka_rc app_dir in
-      let external_manager = Manager.External_Manager.create in
-      let data =
-        Manager.External_Manager.encrypt ~key:encrypted_key external_manager
-          ()
+      let res = 
+        Libyomu.Init.create_yomu_share ()
+        >>= fun _ -> 
+          Libyomu.Init.create_yomu_comics ()
       in
-      create_file
-        ~on_file:(fun oc -> output_string oc data)
-        ~on_error:(Error.Create_file external_file_path) external_file_path
-      >>= fun external_file_path ->
-      let app_dir = PathBuf.pop external_file_path in
-      let data_foler_dir = PathBuf.push data_folder app_dir in
-      create_folder ~on_error:(Error.Create_folder data_foler_dir)
-        data_foler_dir *)
+      res
   in
   match res with
   | Ok _ ->
