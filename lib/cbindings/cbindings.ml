@@ -20,3 +20,4 @@ module Termove = Termove
 module Winsize = Winsize
 module Chafa = Chafa
 module OsInfo = OsInfo
+module Libc = Libc

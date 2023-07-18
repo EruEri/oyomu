@@ -143,7 +143,7 @@ let read_item mode (item : ('a, string) Either.t) =
     | Either.Left comic ->
         comic
     | Either.Right right ->
-        let comic = Comic.comic_of_zip right in
+        let comic = Comic.CZip.comic_of_zip right in
         comic
   in
 

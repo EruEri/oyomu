@@ -17,13 +17,28 @@
 
 open Util.FileSys
 
-(** [create_yomu_share ()] create the folder [ $XDG_.../share/yomu] *)
+(** [create_yomu_share ()] create the folder [ $XDG_DATA_HOME/share/yomu] *)
 let create_yomu_share () =
-  create_folder ~on_error:(Error.Create_folder App.share_yomu) App.share_yomu
+  create_folder ~on_error:(Error.Create_folder App.yomu_share) App.yomu_share
 
 (** 
-  [create_yomu_comic ()] create the folder [comic] in [$XDG_.../share/yomu] so 
-  [$XDG_.../share/yomu/comics]
+  [create_yomu_comic ()] create the folder [comic] in [$XDG_DATA_HOME/share/yomu] so 
+  [$XDG_DATA_HOME/share/yomu/comics]
 *)
 let create_yomu_comics () =
-  create_folder ~on_error:(Error.Create_folder App.comics_yomu) App.comics_yomu
+  create_folder ~on_error:(Error.Create_folder App.yomu_comics) App.yomu_comics
+
+(** 
+  [create_yomu_hidden ()] create the folder [.scomics] in [$XDG_DATA_HOME/share/yomu] so 
+  [$XDG_DATA_HOME/share/yomu/.scomics] and the file [.syomurc]
+*)
+let create_yomu_hidden ~key () =
+  let ( >== ) = Result.bind in
+  create_folder ~on_error:(Error.Create_file App.yomu_hidden_comics)
+    App.yomu_hidden_comics
+  >== fun _ ->
+  let syomurc = Comic.Syomu.create in
+  let encrypted = Comic.Syomu.encrypt ~key syomurc () in
+  create_file
+    ~on_file:(fun oc -> output_string oc encrypted)
+    ~on_error:(Error.Create_file App.yomu_hidden_config) App.yomu_hidden_config

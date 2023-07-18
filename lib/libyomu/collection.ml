@@ -35,7 +35,7 @@ let list level dir =
 (** [volumes comic] returns the path of the [comic] and its content *)
 let volumes comic =
   let open App in
-  let path = comics_yomu // comic in
+  let path = yomu_comics // comic in
   match Sys.file_exists path with
   | true ->
       (path, Some (Sys.readdir path))
@@ -69,7 +69,7 @@ let add ~comic_name ~comic_dir ~comics index comic_archive =
   ()
 
 let _list () =
-  let comics_path = App.comics_yomu in
+  let comics_path = App.yomu_comics in
   let () = check_exist comics_path () in
   let afiles = Sys.readdir comics_path in
   let () = Array.iter (Printf.printf "%s\n") afiles in

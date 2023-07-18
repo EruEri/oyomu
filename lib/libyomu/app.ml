@@ -21,10 +21,17 @@ let xdg = Xdg.create ~env:Sys.getenv_opt ()
 let xdg_data = Xdg.data_dir xdg
 let xdg_config = Xdg.config_dir xdg
 let comics_folder_name = "comics"
-let share_yomu = xdg_data // yomu_name
-let comics_yomu = share_yomu // comics_folder_name
+let hidden_folder_name = ".scomics"
+let hidden_config_name = ".syomurc"
+let yomu_share = xdg_data // yomu_name
+let yomu_comics = yomu_share // comics_folder_name
+let yomu_hidden_comics = yomu_share // hidden_folder_name
+
+(** [$XDG_DATA_HOME/share/yomu/.scomics/.syomurc]*)
+let yomu_hidden_config = yomu_hidden_comics // hidden_config_name
+
 let config_yomu = xdg_config // yomu_name
-let is_app_folder_exist () = Sys.file_exists share_yomu
+let is_app_folder_exist () = Sys.file_exists yomu_share
 
 let check_app_initialized () =
   let () =

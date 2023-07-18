@@ -15,11 +15,4 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-module App = App
-module Error = Error
-module Comic = Comic
-module Ccallback = Ccallback
-module Drawing = Drawing
-module Collection = Collection
-module Init = Initialization
-module Input = Input
+external getpass : string -> unit -> string = "caml_get_pass"
