@@ -15,55 +15,45 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-
 open Cmdliner
 
 let name = "read"
 
-let pixels_modes = let open Cbindings.Chafa in [
-  ("symbols", CHAFA_PIXEL_MODE_SYMBOLS);
-  ("sixels", CHAFA_PIXEL_MODE_SIXELS);
-  ("kitty", CHAFA_PIXEL_MODE_KITTY);
-  ("iterm", CHAFA_PIXEL_MODE_ITERM2);
-]
+let pixels_modes =
+  let open Cbindings.Chafa in
+  [
+    ("symbols", CHAFA_PIXEL_MODE_SYMBOLS);
+    ("sixels", CHAFA_PIXEL_MODE_SIXELS);
+    ("kitty", CHAFA_PIXEL_MODE_KITTY);
+    ("iterm", CHAFA_PIXEL_MODE_ITERM2);
+  ]
 
-type t = {
-  mode: Cbindings.Chafa.pixel_mode;
-  files: string list
-}
+type t = { mode : Cbindings.Chafa.pixel_mode; files : string list }
 
 let file_term =
-  let linfo = Arg.info [] ~docv:"<FILES.(cbz|zip)>" ~doc:"Archive of the comic. The archives must be zip archive" in
+  let linfo =
+    Arg.info [] ~docv:"<FILES.(cbz|zip)>"
+      ~doc:"Archive of the comic. The archives must be zip archive"
+  in
   Arg.(non_empty & pos_all non_dir_file [] & linfo)
 
-let pixel_term = 
+let pixel_term =
   Arg.(
-    value 
-    & opt (enum pixels_modes) CHAFA_PIXEL_MODE_SYMBOLS 
-    & info ["pixel"; "p"]
-    ~docv:"PIXEL_MODE"
-    ~doc:("pixel mode to use to render the images" ^ (doc_alts_enum ~quoted:true pixels_modes))
+    value
+    & opt (enum pixels_modes) CHAFA_PIXEL_MODE_SYMBOLS
+    & info [ "pixel"; "p" ] ~docv:"PIXEL_MODE"
+        ~doc:
+          ("pixel mode to use to render the images"
+          ^ doc_alts_enum ~quoted:true pixels_modes
+          )
   )
 
 let cmd_term run =
-  let combine files mode =
-    run @@ { files; mode }
-  in
-  Term.(
-    const combine
-    $ file_term
-    $ pixel_term
-
-  )
-
+  let combine files mode = run @@ { files; mode } in
+  Term.(const combine $ file_term $ pixel_term)
 
 let cmd_doc = "Read comics"
-
-let cmd_man = 
-  [
-    `S Manpage.s_description;
-    `P "Read commic"; 
-  ]
+let cmd_man = [ `S Manpage.s_description; `P "Read commic" ]
 
 let cmd run =
   let info = Cmd.info name ~doc:cmd_doc ~man:cmd_man in

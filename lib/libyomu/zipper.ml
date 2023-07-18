@@ -17,60 +17,57 @@
 
 type 'a t = 'a list * 'a list
 
-
 exception ZipperOutLeft
 exception ZipperOutRight
 
-let left = function
-| [], _ -> raise ZipperOutLeft
-| t::q, rhs -> q, t::rhs
+let left = function [], _ -> raise ZipperOutLeft | t :: q, rhs -> (q, t :: rhs)
 
 let right = function
-| _, [] -> raise ZipperOutRight
-| lhs, t::q -> t::lhs, q
+  | _, [] ->
+      raise ZipperOutRight
+  | lhs, t :: q ->
+      (t :: lhs, q)
 
-let is_at_start = function
-| [], _ -> true
-| _::_, _ -> false
+let is_at_start = function [], _ -> true | _ :: _, _ -> false
+let is_at_end = function _, [] -> true | _, _ :: _ -> false
+let of_list list : 'a t = (list, [])
+let of_list_end list : 'a t = ([], List.rev list)
+let top_left = function [], _ -> None | t :: _, _ -> Some t
 
-let is_at_end = function
-| _, [] -> true
-| _, _::_ -> false
-
-let of_list list: 'a t = 
-  list, []
-
-let of_list_end list: 'a t = 
-  [], List.rev list
-
-let top_left = function
-| [], _ -> None
-| t::_, _ -> Some t
-
-let replace_current alt :'a t -> 'a t = function
-| ([], _) as z -> z
-| _::q, rhs -> alt::q, rhs  
+let replace_current alt : 'a t -> 'a t = function
+  | ([], _) as z ->
+      z
+  | _ :: q, rhs ->
+      (alt :: q, rhs)
 
 let status = function
-| lhs, rhs -> 
-  let l = List.length lhs in 
-  let r = List.length rhs in
-  l, r, l + r
+  | lhs, rhs ->
+      let l = List.length lhs in
+      let r = List.length rhs in
+      (l, r, l + r)
 
-let rec action_alt f zipper = 
+let rec action_alt f zipper =
   let new_zipper, res = f zipper in
-  try match res with
-  | `Right -> action_alt f @@ left new_zipper
-  | `Left -> action_alt f @@ right new_zipper
-  | `Quit -> res
+  try
+    match res with
+    | `Right ->
+        action_alt f @@ left new_zipper
+    | `Left ->
+        action_alt f @@ right new_zipper
+    | `Quit ->
+        res
   with _ -> res
 
-
-let rec action ?(ignored = false) f zipper = 
+let rec action ?(ignored = false) f zipper =
   let res = f ignored zipper in
-  try match res with
-  | `Right -> action f @@ left zipper
-  | `Left -> action f @@ right zipper
-  | `Ignore -> action ~ignored:true f zipper
-  | `Quit -> res
+  try
+    match res with
+    | `Right ->
+        action f @@ left zipper
+    | `Left ->
+        action f @@ right zipper
+    | `Ignore ->
+        action ~ignored:true f zipper
+    | `Quit ->
+        res
   with _ -> res

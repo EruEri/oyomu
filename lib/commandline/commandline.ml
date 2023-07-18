@@ -19,6 +19,7 @@ module Main = struct
   open Cmdliner
 
   let name = "oyomu"
+
   let version =
     match Build_info.V1.version () with
     | None ->
@@ -35,16 +36,10 @@ module Main = struct
     ]
 
   let root_info = Cmd.info name ~doc:root_doc ~man:root_man ~version
-
-  let subcommands =
-    [
-      Init.command;
-      Read.command;
-      Add.command
-    ]
-
+  let subcommands = [ Init.command; Read.command; Add.command ]
   let parse () = Cmd.group root_info subcommands
-  let eval () = 
+
+  let eval () =
     let () = Libyomu.Ccallback.register_callback () in
     () |> parse |> Cmd.eval
 end

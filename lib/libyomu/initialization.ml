@@ -15,18 +15,15 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-
 open Util.FileSys
 
-
 (** [create_yomu_share ()] create the folder [ $XDG_.../share/yomu] *)
-let create_yomu_share () = 
+let create_yomu_share () =
   create_folder ~on_error:(Error.Create_folder App.share_yomu) App.share_yomu
 
 (** 
   [create_yomu_comic ()] create the folder [comic] in [$XDG_.../share/yomu] so 
   [$XDG_.../share/yomu/comics]
 *)
-let create_yomu_comics () = 
+let create_yomu_comics () =
   create_folder ~on_error:(Error.Create_folder App.comics_yomu) App.comics_yomu
-

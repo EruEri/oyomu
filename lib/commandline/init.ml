@@ -18,9 +18,7 @@
 open Cmdliner
 open Libyomu
 
-type t = {
-  force: bool
-}
+type t = { force : bool }
 
 let name = "init"
 
@@ -31,7 +29,6 @@ let force_term =
 let cmd_term run =
   let combine force = run @@ { force } in
   Term.(const combine $ force_term)
-
 
 let cmd_doc = "Initialise yomu"
 let cmd_man = [ `S Manpage.s_description; `P "Initialise yomu" ]
@@ -54,20 +51,19 @@ let run cmd_init =
           rmrf App.share_yomu ()
       in
       (* let first_message = "Choose the master password : " in
-      let confirm_message = "Confirm the master password : " in
-      let encrypted_key =
-        match
-          Input.confirm_password_encrypted ~first_message ~confirm_message ()
-        with
-        | Ok encrypted_key ->
-            encrypted_key
-        | Error exn ->
-            raise (Input.PassError exn)
-      in *)
-      let res = 
+         let confirm_message = "Confirm the master password : " in
+         let encrypted_key =
+           match
+             Input.confirm_password_encrypted ~first_message ~confirm_message ()
+           with
+           | Ok encrypted_key ->
+               encrypted_key
+           | Error exn ->
+               raise (Input.PassError exn)
+         in *)
+      let res =
         Libyomu.Init.create_yomu_share ()
-        >>= fun _ -> 
-          Libyomu.Init.create_yomu_comics ()
+        >>= fun _ -> Libyomu.Init.create_yomu_comics ()
       in
       res
   in
@@ -78,4 +74,3 @@ let run cmd_init =
       raise (Error.YomuError (Init_Error init_error))
 
 let command = cmd run
-

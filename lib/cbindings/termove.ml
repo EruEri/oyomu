@@ -15,10 +15,8 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-
-external enable_raw_mode: unit -> unit = "caml_enable_raw_mode"
-external disable_raw_mode: unit -> unit = "caml_disable_raw_mode"
-
+external enable_raw_mode : unit -> unit = "caml_enable_raw_mode"
+external disable_raw_mode : unit -> unit = "caml_disable_raw_mode"
 
 let seq_new_screen_buf = "\u{001B}[?1049h\u{001B}[H"
 let seq_end_screen_buf = "\u{001B}[?1049l"
@@ -31,47 +29,27 @@ let lower_left_corner = "└"
 let lower_right_corner = "┘"
 let horizontal_line = "─" (* "─" != '-' *)
 let vertical_line = "│"
+let set_cursor_at = Printf.printf "\u{001B}[%u;%uf%!"
+let move_down = Printf.printf "\u{001B}[%uB%!"
+let clear () = Printf.printf "%s%!" clear_console
+let draw_vertical_line () = Printf.printf "%s%!" vertical_line
+let draw_horizontal_line () = Printf.printf "%s%!" horizontal_line
+let move_forward_column = Printf.printf "\u{001B}[%uC%!"
+let draw_string = Printf.printf "%s%!"
+let draw_char = Printf.printf "%c%!"
+let set_cursor_next_line line = set_cursor_at (line + 1) 0
 
-
-let set_cursor_at = 
-  Printf.printf "\u{001B}[%u;%uf%!"
-
-let move_down = 
-  Printf.printf "\u{001B}[%uB%!"
-
-let clear () = 
-  Printf.printf "%s%!" clear_console
-
-let draw_vertical_line () = 
-  Printf.printf "%s%!" vertical_line
-
-let draw_horizontal_line () = 
-  Printf.printf "%s%!" horizontal_line
-
-let move_forward_column = 
-  Printf.printf "\u{001B}[%uC%!"
-
-let draw_string = 
-  Printf.printf "%s%!"
-
-let draw_char = 
-  Printf.printf "%c%!"
-
-let set_cursor_next_line line =
-  set_cursor_at (line + 1) 0
-
-
-let redraw_empty () = 
+let redraw_empty () =
   let () = draw_string seq_clear_saved_line in
   let () = draw_string seq_clear_screen in
   let () = set_cursor_at 0 0 in
   ()
 
-let start_window () = 
+let start_window () =
   let () = enable_raw_mode () in
   Printf.printf "%s%!" seq_new_screen_buf
 
-let end_window () = 
+let end_window () =
   let () = Printf.printf "%s%!" seq_end_screen_buf in
   let () = disable_raw_mode () in
   ()

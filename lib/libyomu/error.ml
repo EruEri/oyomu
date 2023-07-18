@@ -15,11 +15,11 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-type init_error = 
-| App_folder_already_exist of string
-| Create_folder of string
-| Create_file of string
-| EncryptionError of string
+type init_error =
+  | App_folder_already_exist of string
+  | Create_folder of string
+  | Create_file of string
+  | EncryptionError of string
 
 type error =
   | No_Option_choosen
@@ -27,15 +27,12 @@ type error =
   | Yomu_Not_Initialized
   | DecryptionError of string
   | Already_Existing_name of string
-  | Volume_already_existing of {
-    comic: string;
-    volume: int;
-  }
+  | Volume_already_existing of { comic : string; volume : int }
   | Missing_file of { true_name : string; encrypted_name : string }
   | Init_Error of init_error
   | Non_existing_group of string list
 
-  let string_of_init_error = function
+let string_of_init_error = function
   | App_folder_already_exist path ->
       Printf.sprintf "\"%s\" directory already exists" path
   | Create_folder path ->
@@ -53,7 +50,7 @@ let string_of_error = function
       "Operation Aborted"
   | No_file_to_decrypt ->
       Printf.sprintf "No File to decrypt"
-  | Volume_already_existing {comic; volume} ->
+  | Volume_already_existing { comic; volume } ->
       Printf.sprintf "Comic \"%s\": the volume %u already exists" comic volume
   | DecryptionError file ->
       Printf.sprintf "decrptytion error : %s" file
@@ -70,7 +67,6 @@ let string_of_error = function
       in
       Printf.sprintf "The following group%s %s exist: [%s]" s does
         (String.concat ", " groups)
-
 
 exception YomuError of error
 

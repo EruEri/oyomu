@@ -43,7 +43,7 @@ Other features will be added but read is the minimun for a comic reader
 ## How to build
 - First you will need to install those opam packages.
     ```sh
-    $ opam install dune xdg camlzip cmdliner dune-configurator
+    $ opam install dune xdg camlzip cmdliner dune-configurator cryptokit yojson ppx_deriving_yojson
     ```
 
 - You will also need to install those C libraries:

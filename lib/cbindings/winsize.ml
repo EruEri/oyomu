@@ -15,12 +15,6 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
+type t = { ws_row : int; ws_col : int; ws_xpixel : int; ws_ypixel : int }
 
-type t = {
-  ws_row: int;
-  ws_col: int;
-  ws_xpixel: int;
-  ws_ypixel: int
-}
-
-external get: unit -> t = "caml_winsize"
+external get : unit -> t = "caml_winsize"

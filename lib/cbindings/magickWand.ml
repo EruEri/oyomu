@@ -15,10 +15,9 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-
 type t
 
-type storage_type = 
+type storage_type =
   | UndefinedPixel
   | CharPixel
   | DoublePixel
@@ -28,15 +27,25 @@ type storage_type =
   | QuantumPixel
   | ShortPixel
 
+external magick_wand_genesis : unit -> unit = "caml_magick_wand_genesis"
+external magick_wand_terminus : unit -> unit = "caml_magick_wand_terminus"
+external new_magick_wand : unit -> t = "caml_new_magick_wand"
+external destroy_magick_wand : t -> unit = "caml_destroy_magick_wand"
 
-external magick_wand_genesis: unit -> unit = "caml_magick_wand_genesis"
-external magick_wand_terminus: unit -> unit = "caml_magick_wand_terminus"
+external magick_read_image_blob : t -> string -> bool
+  = "caml_magick_read_image_blob"
 
-external new_magick_wand: unit -> t = "caml_new_magick_wand"
-external destroy_magick_wand: t -> unit = "caml_destroy_magick_wand"
-external magick_read_image_blob: t -> string -> bool = "caml_magick_read_image_blob"
-external magick_get_image_width: t -> int64 = "caml_magick_get_image_width"
-external magick_get_image_height: t -> int64 = "caml_magick_get_image_height"
-external magick_export_image_pixels: 
-  t -> x:int64 -> y:int64 -> columns:int64 -> rows:int64 -> 
-    string -> storage_type -> bytes -> bool = "caml_magick_export_image_pixels_bytecode" "caml_magick_export_image_pixels"
+external magick_get_image_width : t -> int64 = "caml_magick_get_image_width"
+external magick_get_image_height : t -> int64 = "caml_magick_get_image_height"
+
+external magick_export_image_pixels :
+  t ->
+  x:int64 ->
+  y:int64 ->
+  columns:int64 ->
+  rows:int64 ->
+  string ->
+  storage_type ->
+  bytes ->
+  bool
+  = "caml_magick_export_image_pixels_bytecode" "caml_magick_export_image_pixels"

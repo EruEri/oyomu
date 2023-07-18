@@ -15,7 +15,6 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-
 module FileSys = struct
   let create_folder ?(perm = 0o700) ~on_error folder =
     let to_path_string = folder in
@@ -48,15 +47,11 @@ module FileSys = struct
 end
 
 module Io = struct
-    let read_file ch () = really_input_string ch (in_channel_length ch)
+  let read_file ch () = really_input_string ch (in_channel_length ch)
 
-    let cp input output = 
-      let content = In_channel.with_open_bin input (fun ic -> 
-        read_file ic ()
-      )
-      in
-      Out_channel.with_open_bin output (fun oc -> 
-        
+  let cp input output =
+    let content = In_channel.with_open_bin input (fun ic -> read_file ic ()) in
+    Out_channel.with_open_bin output (fun oc ->
         Out_channel.output_string oc content
-      )
+    )
 end

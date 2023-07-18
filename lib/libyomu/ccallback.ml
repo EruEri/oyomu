@@ -15,7 +15,7 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-let register_callback () = 
+let register_callback () =
   let () = Callback.register "c_comic_of_zip" Comic.comic_of_zip in
   let () = Callback.register "c_list_len" List.length in
   ()

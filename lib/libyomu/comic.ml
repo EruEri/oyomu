@@ -18,40 +18,39 @@
 (* treat string as byte vector *)
 (* type data = string *)
 
-type page = {
-  data: string
-}
+type page = { data : string }
+type comic = { name : string; pages : page list }
 
-type comic = {
-  name: string;
-  pages: page list
-}
-
-(** Either an unzip comic or it archive path *)
 type reading_item = (comic, string) Either.t
+(** Either an unzip comic or it archive path *)
 
 type reading_collection = reading_item list
-
-
 type collection = comic list
-
 
 let comic_of_zip archive =
   let zip = Zip.open_in archive in
   let entry = Zip.entries zip in
-  let pages = entry |> List.map (fun entry -> 
-    let tmp_file, outchan = Filename.open_temp_file (Filename.basename entry.Zip.filename) ".yomu" in
-    let () = prerr_endline entry.Zip.filename in
-    let () = Zip.copy_entry_to_file zip entry tmp_file in
-    let () = close_out outchan in
-    let data = In_channel.with_open_bin tmp_file (fun ic -> 
-       let data = Util.Io.read_file ic () in
-       { data }
-    ) in
-    data
-  ) 
+  let pages =
+    entry
+    |> List.map (fun entry ->
+           let tmp_file, outchan =
+             Filename.open_temp_file
+               (Filename.basename entry.Zip.filename)
+               ".yomu"
+           in
+           let () = prerr_endline entry.Zip.filename in
+           let () = Zip.copy_entry_to_file zip entry tmp_file in
+           let () = close_out outchan in
+           let data =
+             In_channel.with_open_bin tmp_file (fun ic ->
+                 let data = Util.Io.read_file ic () in
+                 { data }
+             )
+           in
+           data
+       )
   in
   let stripped_name = Filename.remove_extension @@ Filename.basename archive in
-  let comic = {name = stripped_name; pages} in
+  let comic = { name = stripped_name; pages } in
   let () = Zip.close_in zip in
   comic

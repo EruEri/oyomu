@@ -15,6 +15,6 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-external macos: unit -> bool = "caml_macos"
+external macos : unit -> bool = "caml_macos"
 
 let macos = macos ()

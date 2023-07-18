@@ -1,4 +1,15 @@
 (library
  (name libyomu)
  ; (modules ccallback app comic error)
- (libraries util cbindings xdg cmdliner camlzip dune-build-info))
+ (libraries
+  util
+  cbindings
+  xdg
+  cmdliner
+  camlzip
+  dune-build-info
+  cryptokit
+  yojson
+  ppx_deriving_yojson.runtime)
+ (preprocess
+  (pps ppx_deriving_yojson)))
