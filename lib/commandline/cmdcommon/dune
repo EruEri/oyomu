@@ -1,0 +1,3 @@
+(library
+ (name cmdcommon)
+ (libraries cmdliner xdg libyomu util cbindings))

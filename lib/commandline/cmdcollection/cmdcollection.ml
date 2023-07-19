@@ -15,31 +15,18 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-module Main = struct
-  open Cmdliner
+open Cmdliner
 
-  let name = "oyomu"
+let name = "collection"
+let doc = "Manage Oyomu collection"
 
-  let version =
-    match Build_info.V1.version () with
-    | None ->
-        "n/a"
-    | Some v ->
-        Build_info.V1.Version.to_string v
+let man =
+  [
+    `S Manpage.s_description;
+    `P "$(iname) allows to manager and read your comic collection";
+  ]
 
-  let root_doc = "a comic reader"
-
-  let root_man =
-    [
-      `S Manpage.s_description;
-      `P "$(iname) allows to manager and read your comic collection";
-    ]
-
-  let root_info = Cmd.info name ~doc:root_doc ~man:root_man ~version
-  let subcommands = [ Init.command; Read.command; Cmdcollection.command ]
-  let parse () = Cmd.group root_info subcommands
-
-  let eval () =
-    let () = Libyomu.Ccallback.register_callback () in
-    () |> parse |> Cmd.eval
-end
+let root_info = Cmd.info name ~doc ~man
+let subcommands = [ Add.command ]
+let parse () = Cmd.group root_info subcommands
+let command = parse ()

@@ -111,13 +111,13 @@ let run cmd_read =
         ()
   in
 
-  let () = Common.check_yomu_initialiaze () in
+  let () = Cmdcommon.check_yomu_initialiaze () in
   let key_opt =
     match encrypted with
     | false ->
         None
     | true ->
-        let () = Common.check_yomu_hidden () in
+        let () = Cmdcommon.check_yomu_hidden () in
         let key =
           Option.some
           @@ Libyomu.Input.ask_password_encrypted
