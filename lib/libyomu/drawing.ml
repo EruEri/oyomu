@@ -188,4 +188,5 @@ let read_comics mode (archives : string list) () =
 
   let () = Termove.end_window () in
   let () = MagickWand.magick_wand_terminus () in
+  let () = Collection.clear_tmp_files () in
   ()

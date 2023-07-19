@@ -41,7 +41,7 @@ let pixel_term =
     & opt (enum pixels_modes) CHAFA_PIXEL_MODE_SYMBOLS
     & info [ "pixel"; "p" ] ~docv:"PIXEL_MODE"
         ~doc:
-          ("pixel mode to use to render the images"
+          ("pixel mode to use to render the images. "
           ^ doc_alts_enum ~quoted:true pixels_modes
           )
   )
@@ -86,26 +86,26 @@ let read_normal all specifics =
   let ( // ) = Libyomu.App.( // ) in
   let archives =
     all
-    |> List.map (fun name ->
+    |> List.filter_map (fun name ->
            let path = Libyomu.App.yomu_comics // name in
            match Sys.file_exists path with
            | false ->
-               failwith "TODO: comics doesnt exist"
+               None
            | true ->
                let dir_content = Sys.readdir path in
                let ldir_content = Array.to_list dir_content in
                let content = ldir_content |> List.map @@ ( // ) path in
-               content
+               Some content
        )
   in
 
   let archives_spe =
     specifics
-    |> List.map (fun (index, name) ->
+    |> List.filter_map (fun (index, name) ->
            let path = Libyomu.App.yomu_comics // name in
            match Sys.file_exists path with
            | false ->
-               failwith "TODO: comics doesnt exist"
+               None
            | true ->
                let dir_content = Sys.readdir path in
                let ldir_content = Array.to_list dir_content in
@@ -121,10 +121,19 @@ let read_normal all specifics =
                             None
                     )
                in
-               content
+               Some content
        )
   in
   archives @ archives_spe |> List.flatten
+
+let read_encrypted ~key all specifics =
+  let syomurc = Libyomu.Comic.Syomu.decrypt ~key () in
+  let filtered = Libyomu.Comic.Syomu.filter_series all syomurc in
+  let fspecifis = Libyomu.Comic.Syomu.filter_vseries specifics syomurc in
+  let syomurc = Libyomu.Comic.Syomu.union filtered fspecifis in
+  let earchives = Libyomu.Comic.Syomu.decrypt_all ~key syomurc in
+  let narchives = read_normal all specifics in
+  narchives @ earchives
 
 let run cmd =
   let { encrypted; all; specifics; pixel_mode } = cmd in
@@ -147,8 +156,8 @@ let run cmd =
   in
   let archives =
     match key_opt with
-    | Some _ ->
-        failwith "TODO: Encryped read"
+    | Some key ->
+        read_encrypted ~key all specifics
     | None ->
         read_normal all specifics
   in

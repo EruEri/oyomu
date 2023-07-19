@@ -82,4 +82,10 @@ module Io = struct
     Out_channel.with_open_bin output (fun oc ->
         Out_channel.output_string oc content
     )
+
+  let dump_tmp ~name ~extension content () =
+    let filename, outchan = Filename.open_temp_file name extension in
+    let () = output_string outchan content in
+    let () = close_out outchan in
+    filename
 end

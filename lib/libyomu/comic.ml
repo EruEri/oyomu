@@ -74,6 +74,40 @@ module Syomu = struct
             raise @@ Error.(yomu_error @@ Error.DecryptionError e)
       )
 
+  let filter_serie serie syomurc =
+    { scomics = syomurc.scomics |> List.filter (fun s -> s.serie = serie) }
+
+  let filter_series series syomurc =
+    {
+      scomics = syomurc.scomics |> List.filter (fun s -> List.mem s.serie series);
+    }
+
+  let filter_vseries vsereis syomurc =
+    {
+      scomics =
+        syomurc.scomics
+        |> List.filter (fun s -> List.mem (s.volume, s.serie) vsereis);
+    }
+
+  let union lhs rhs = { scomics = lhs.scomics @ rhs.scomics }
+
+  let decrypt_all ~key syomurc =
+    let ( // ) = App.( // ) in
+    syomurc.scomics
+    |> List.map (fun s ->
+           let path = App.yomu_hidden_comics // s.encrypted_file_name in
+           match Encryption.decrpty_file ~key ~iv:s.iv path () with
+           | Ok (Some data) ->
+               Util.Io.dump_tmp ~name:s.encrypted_file_name
+                 ~extension:App.tmp_extension data ()
+           | Ok None ->
+               raise @@ Error.yomu_error
+               @@ Error.DecryptionError
+                    (Printf.sprintf "Cannot decrypt : %s" path)
+           | Error e ->
+               raise e
+       )
+
   let serie_exists serie syomurc =
     syomurc.scomics |> List.exists (fun scomic -> scomic.serie = serie)
 
@@ -94,7 +128,7 @@ module CZip = struct
              let tmp_file, outchan =
                Filename.open_temp_file
                  (Filename.basename entry.Zip.filename)
-                 ".yomu"
+                 App.tmp_extension
              in
              let () = prerr_endline entry.Zip.filename in
              let () = Zip.copy_entry_to_file zip entry tmp_file in

@@ -147,6 +147,20 @@ module Encrypted = struct
     ()
 end
 
+let clear_tmp_files () =
+  let temp_folder = Filename.get_temp_dir_name () in
+  temp_folder |> Sys.readdir
+  |> Array.iter (fun file ->
+         let file = Filename.concat temp_folder file in
+         match file with
+         | file
+           when (try not @@ Sys.is_directory file with _ -> false)
+                && String.ends_with ~suffix:".yomu" file ->
+             Util.FileSys.rmrf file ()
+         | _ ->
+             ()
+     )
+
 let _list () =
   let comics_path = App.yomu_comics in
   let () = check_exist comics_path () in
