@@ -28,7 +28,7 @@ let default_iv = String.init iv_size (fun _ -> Char.chr 0)
 let random_iv () =
   String.init iv_size (fun _ -> uint_8_max |> Random.full_int |> Char.chr)
 
-let encrypt ?(where = None) ~key ~iv data () =
+let encrypt ?where ~key ~iv data () =
   let e = Cryptokit.AEAD.(aes_gcm key ~iv Encrypt) in
   let encrypted_data = Cryptokit.auth_transform_string e data in
   match where with
@@ -42,14 +42,14 @@ let encrypt ?(where = None) ~key ~iv data () =
       in
       encrypted_data
 
-let encrypt_file ?(where = None) ~key ~iv file () =
+let encrypt_file ?where ~key ~iv file () =
   match open_in_bin file with
   | exception exn ->
       Error exn
   | file ->
       let raw_data = Util.Io.read_file file () in
       let () = close_in file in
-      Ok (encrypt ~where ~key ~iv raw_data ())
+      Ok (encrypt ?where ~key ~iv raw_data ())
 
 let decrypt ~key ~iv data () =
   let d = Cryptokit.AEAD.(aes_gcm key ~iv Decrypt) in

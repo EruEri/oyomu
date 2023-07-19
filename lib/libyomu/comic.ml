@@ -40,6 +40,10 @@ module Syomu = struct
   let encryption_iv =
     String.init 12 (fun index -> Char.chr ((index + 1) mod 256))
 
+  (** [create_item encrypted_file_name serie volume] create a new [syomu_item] with a random iv *)
+  let create_item encrypted_file_name serie volume =
+    { iv = Encryption.random_iv (); encrypted_file_name; serie; volume }
+
   let create = { scomics = [] }
   let to_string manager = manager |> syomurc_to_yojson |> Yojson.Safe.to_string
   let of_string bytes = bytes |> Yojson.Safe.from_string |> syomurc_of_yojson
@@ -47,7 +51,37 @@ module Syomu = struct
   let encrypt ~key syomurc () =
     let data = to_string syomurc in
     let where = Option.some App.yomu_hidden_config in
-    Encryption.encrypt ~where ~key ~iv:encryption_iv data ()
+    Encryption.encrypt ?where ~key ~iv:encryption_iv data ()
+
+  let save_encrypt ~where ~key syomurc () =
+    let content = encrypt ~key syomurc () in
+    Out_channel.with_open_bin where (fun oc -> output_string oc content)
+
+  let decrypt ~key () =
+    let path = App.yomu_hidden_config in
+    match Encryption.decrpty_file ~key ~iv:encryption_iv path () with
+    | Error exn ->
+        raise exn
+    | Ok None ->
+        raise @@ Error.yomu_error
+        @@ Error.DecryptionError
+             (Printf.sprintf "Cannot decrypt : %s" App.hidden_config_name)
+    | Ok (Some external_maneger_bytes) -> (
+        match of_string external_maneger_bytes with
+        | Ok data ->
+            data
+        | Error e ->
+            raise @@ Error.(yomu_error @@ Error.DecryptionError e)
+      )
+
+  let serie_exists serie syomurc =
+    syomurc.scomics |> List.exists (fun scomic -> scomic.serie = serie)
+
+  let exists volume comic syomurc =
+    syomurc.scomics
+    |> List.exists (fun scomic -> scomic.volume = volume && scomic.serie = comic)
+
+  let add item syomurc = { scomics = item :: syomurc.scomics }
 end
 
 module CZip = struct

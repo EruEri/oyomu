@@ -15,6 +15,31 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
+module Hash = struct
+  let hash_name ~name ~extension =
+    let extension =
+      if extension = String.empty then
+        String.empty
+      else
+        "." ^ extension
+    in
+    let hash_name = name ^ extension |> Digest.string |> Digest.to_hex in
+    Printf.sprintf "%s" hash_name
+
+  let rec generate_unique_name ?(max_iter = 5) ~extension ~name path =
+    let ( // ) = Filename.concat in
+    if max_iter <= 0 then
+      None
+    else
+      let hashed_name = hash_name ~name ~extension in
+      let file_full_path = path // hashed_name in
+      if not @@ Sys.file_exists file_full_path then
+        Some hashed_name
+      else
+        generate_unique_name ~max_iter:(max_iter - 1) ~name:hashed_name
+          ~extension path
+end
+
 module FileSys = struct
   let create_folder ?(perm = 0o700) ~on_error folder =
     let to_path_string = folder in
@@ -48,6 +73,9 @@ end
 
 module Io = struct
   let read_file ch () = really_input_string ch (in_channel_length ch)
+
+  let content_filename string () =
+    In_channel.with_open_bin string (fun ic -> read_file ic ())
 
   let cp input output =
     let content = In_channel.with_open_bin input (fun ic -> read_file ic ()) in

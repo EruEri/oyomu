@@ -58,6 +58,11 @@ let cmd_man =
            \\%cXDG_DATA_HOME/yomu/.scomics)."
           '$'
       );
+    `P
+      "Note that, adding the same comic in $(b,Normal) and $(c,Encrypted) will \
+       $(b,not) causeduplicate issue since there treated as 2 separated \
+       collections\n\
+      \    ";
   ]
 
 let cmd run =

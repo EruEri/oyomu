@@ -29,6 +29,7 @@ type error =
   | Already_Existing_name of string
   | Volume_already_existing of { comic : string; volume : int }
   | Missing_file of { true_name : string; encrypted_name : string }
+  | Missing_init_file of string
   | Init_Error of init_error
   | Non_existing_group of string list
 
@@ -48,6 +49,8 @@ let string_of_error = function
         "\".oyomu\" directory doesn't exist. Use hisoka init to initialize"
   | No_Option_choosen ->
       "Operation Aborted"
+  | Missing_init_file file ->
+      Printf.sprintf "The file \"%s\" is missing" file
   | No_file_to_decrypt ->
       Printf.sprintf "No File to decrypt"
   | Volume_already_existing { comic; volume } ->

@@ -51,22 +51,101 @@ let are_same_volume lhs rhs =
   let rhs = Filename.basename rhs in
   rhs = lhs
 
-let add ~comic_name ~comic_dir ~comics index comic_archive =
-  let open App in
-  let indexed_archive = convert_name index comic_archive in
-  let path = comic_dir // indexed_archive in
-  let () =
-    match Array.exists (are_same_volume indexed_archive) comics with
-    | false ->
-        Util.Io.cp comic_archive path
+module Normal = struct
+  let add ~comic_name ~comic_dir ~comic_dir_content index comic_archive =
+    let open App in
+    let indexed_archive = convert_name index comic_archive in
+    let path = comic_dir // indexed_archive in
+    let () =
+      match
+        Array.exists (are_same_volume indexed_archive) comic_dir_content
+      with
+      | false ->
+          Util.Io.cp comic_archive path
+      | true ->
+          raise
+          @@ Error.(
+               yomu_error
+               @@ Volume_already_existing { comic = comic_name; volume = index }
+             )
+    in
+    ()
+
+  let add_multiples ~comic_name ~comic_dir ~comic_dir_content files =
+    let () =
+      List.iter
+        (fun (index, archive) ->
+          add ~comic_name ~comic_dir ~comic_dir_content index archive
+        )
+        files
+    in
+    ()
+end
+
+module Encrypted = struct
+  let check_serie_exist comic_name syomurc () =
+    match Comic.Syomu.serie_exists comic_name syomurc with
     | true ->
-        raise
-        @@ Error.(
-             yomu_error
-             @@ Volume_already_existing { comic = comic_name; volume = index }
-           )
-  in
-  ()
+        ()
+    | false ->
+        failwith "S: Serie doesnt exist"
+
+  let check_duplicate comic_name volume syomurc () =
+    match Comic.Syomu.exists volume comic_name syomurc with
+    | false ->
+        ()
+    | true ->
+        failwith "S: Duplicated exist"
+
+  let dname comic_name index comic_archive =
+    let extension = Filename.extension comic_archive in
+    let s = Printf.sprintf "%s_%u_%s" comic_name index comic_archive in
+    (s, extension)
+
+  (*  *)
+
+  let add_encrypted ~key ~existing ~comic_name index comic_archive =
+    let ( // ) = App.( // ) in
+    let syomurc = Comic.Syomu.decrypt ~key () in
+    let () =
+      match existing with
+      | true ->
+          check_serie_exist comic_name syomurc ()
+      | false ->
+          ()
+    in
+    let () =
+      match existing with
+      | true ->
+          check_serie_exist comic_name syomurc ()
+      | false ->
+          ()
+    in
+    let () = check_duplicate comic_name index syomurc () in
+    let name, extension = dname comic_name index comic_archive in
+    let digest_name = Util.Hash.hash_name ~name ~extension in
+    let item = Comic.Syomu.create_item digest_name comic_name index in
+    let content = Util.Io.content_filename comic_archive () in
+    let content_outfile = App.yomu_hidden_comics // digest_name in
+    let _encrypted_content =
+      Encryption.encrypt ~where:content_outfile ~key ~iv:item.iv content ()
+    in
+    let syomurc = Comic.Syomu.add item syomurc in
+    let () =
+      Comic.Syomu.save_encrypt ~where:App.hidden_config_name ~key syomurc ()
+    in
+    ()
+
+  let add_multiples ~key ~existing ~comic_name indexed_archives =
+    let () =
+      List.iter
+        (fun (index, archive) ->
+          add_encrypted ~key ~comic_name ~existing index archive
+        )
+        indexed_archives
+    in
+    ()
+end
 
 let _list () =
   let comics_path = App.yomu_comics in
