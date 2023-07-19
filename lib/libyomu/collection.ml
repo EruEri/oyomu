@@ -24,14 +24,6 @@ let check_exist path () =
 
 let space level = String.init level (fun _ -> ' ')
 
-let list level dir =
-  let afiles = Sys.readdir dir in
-  let () =
-    afiles
-    |> Array.iter (fun file -> Printf.printf "%s|---- %s" (space level) file)
-  in
-  ()
-
 (** [volumes comic] returns the path of the [comic] and its content *)
 let volumes comic =
   let open App in
@@ -155,16 +147,18 @@ let clear_tmp_files () =
          match file with
          | file
            when (try not @@ Sys.is_directory file with _ -> false)
-                && String.ends_with ~suffix:".yomu" file ->
+                && String.ends_with ~suffix:"yomu" file ->
              Util.FileSys.rmrf file ()
          | _ ->
              ()
      )
 
-let _list () =
-  let comics_path = App.yomu_comics in
-  let () = check_exist comics_path () in
-  let afiles = Sys.readdir comics_path in
-  let () = Array.iter (Printf.printf "%s\n") afiles in
+type entry = string * string list
 
-  ()
+let list entries =
+  entries
+  |> List.iter (fun (name, volumes) ->
+         Printf.printf "─ %s:\n\t%s\n%!"
+           (Util.AsciiString.bold name)
+           (volumes |> List.map (Printf.sprintf "- %s") |> String.concat "\n\t")
+     )

@@ -89,3 +89,9 @@ module Io = struct
     let () = close_out outchan in
     filename
 end
+
+module AsciiString = struct
+  let bold_sseq = "\u{001B}[1m"
+  let bold_eseq = "\u{001B}[22m"
+  let bold s = Printf.sprintf "%s%s%s" bold_sseq s bold_eseq
+end

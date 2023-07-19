@@ -91,6 +91,28 @@ module Syomu = struct
 
   let union lhs rhs = { scomics = lhs.scomics @ rhs.scomics }
 
+  let encrypt_format s =
+    Printf.sprintf "%u --> %s" s.volume s.encrypted_file_name
+
+  let entries scomics =
+    let module M = Map.Make (String) in
+    let map = M.empty in
+    let map =
+      scomics.scomics
+      |> List.fold_left
+           (fun map s ->
+             let name = encrypt_format s in
+             match M.find_opt s.serie map with
+             | None ->
+                 M.add s.serie [ name ] map
+             | Some elt ->
+                 let elt = name :: elt in
+                 M.add s.serie elt map
+           )
+           map
+    in
+    M.bindings map
+
   let decrypt_all ~key syomurc =
     let ( // ) = App.( // ) in
     syomurc.scomics
