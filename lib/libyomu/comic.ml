@@ -50,8 +50,8 @@ module Syomu = struct
 
   let encrypt ~key syomurc () =
     let data = to_string syomurc in
-    let where = Option.some App.yomu_hidden_config in
-    Encryption.encrypt ?where ~key ~iv:encryption_iv data ()
+    let where = App.yomu_hidden_config in
+    Encryption.encrypt ~where ~key ~iv:encryption_iv data ()
 
   let save_encrypt ~where ~key syomurc () =
     let content = encrypt ~key syomurc () in
@@ -74,8 +74,18 @@ module Syomu = struct
             raise @@ Error.(yomu_error @@ Error.DecryptionError e)
       )
 
-  let filter_serie serie syomurc =
-    { scomics = syomurc.scomics |> List.filter (fun s -> s.serie = serie) }
+  let exclude_series serie syomurc =
+    let scomics, excluded =
+      syomurc.scomics |> List.partition (fun s -> not @@ List.mem s.serie serie)
+    in
+    ({ scomics }, excluded)
+
+  let excludes_vseries vsereis syomurc =
+    let scomics, exclu =
+      syomurc.scomics
+      |> List.partition (fun s -> not @@ List.mem (s.volume, s.serie) vsereis)
+    in
+    ({ scomics }, exclu)
 
   let filter_series series syomurc =
     {
@@ -83,11 +93,11 @@ module Syomu = struct
     }
 
   let filter_vseries vsereis syomurc =
-    {
-      scomics =
-        syomurc.scomics
-        |> List.filter (fun s -> List.mem (s.volume, s.serie) vsereis);
-    }
+    let scomics =
+      syomurc.scomics
+      |> List.filter (fun s -> List.mem (s.volume, s.serie) vsereis)
+    in
+    { scomics }
 
   let union lhs rhs = { scomics = lhs.scomics @ rhs.scomics }
 
