@@ -259,6 +259,7 @@ let read_collection mode =
 
 let read_comics mode (archives : Comic.named_archive list) () =
   let () = Termove.start_window () in
+  let () = Termove.hide_cursor () in
   let () = MagickWand.magick_wand_genesis () in
 
   let collection = List.map Either.right archives in
@@ -267,6 +268,7 @@ let read_comics mode (archives : Comic.named_archive list) () =
   let _side = read_collection mode z_collections in
 
   let () = Termove.end_window () in
+  let () = Termove.show_cursor () in
   let () = MagickWand.magick_wand_terminus () in
   let () = Collection.clear_tmp_files () in
   ()

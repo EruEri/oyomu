@@ -40,6 +40,8 @@ let move_forward_column = Printf.printf "\u{001B}[%uC%!"
 let draw_string = Printf.printf "%s%!"
 let draw_char = Printf.printf "%c%!"
 let set_cursor_next_line line = set_cursor_at (line + 1) 0
+let hide_cursor () = Printf.printf "\u{001B}[?25l"
+let show_cursor () = Printf.printf "\u{001B}[?25h"
 
 let redraw_empty () =
   let () = draw_string seq_clear_saved_line in

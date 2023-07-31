@@ -135,7 +135,8 @@ module Syomu = struct
                  Util.Io.dump_tmp ~name:s.encrypted_file_name
                    ~extension:App.tmp_extension data ()
                in
-               { archive_path; name = s.serie }
+               let name = Printf.sprintf "%s-%u" s.serie s.volume in
+               { archive_path; name }
            | Ok None ->
                raise @@ Error.yomu_error
                @@ Error.DecryptionError
