@@ -17,6 +17,8 @@
 
 external enable_raw_mode : unit -> unit = "caml_enable_raw_mode"
 external disable_raw_mode : unit -> unit = "caml_disable_raw_mode"
+external enable_canonic : unit -> unit = "caml_enable_canonic"
+external disable_canonic : unit -> unit = "caml_disable_canonic"
 
 let seq_new_screen_buf = "\u{001B}[?1049h\u{001B}[H"
 let seq_end_screen_buf = "\u{001B}[?1049l"

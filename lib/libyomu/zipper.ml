@@ -16,7 +16,6 @@
 (**********************************************************************************************)
 
 type 'a t = 'a list * 'a list
-
 type move_kind = { absolute : bool; offset : int }
 
 exception ZipperOutLeft
@@ -42,15 +41,15 @@ let rec swipe n = function
   | zipper ->
       swipe (n + 1) (right zipper)
 
-let current_index zipper = 
-    List.length @@ snd zipper
+let current_index zipper = List.length @@ snd zipper
 
-let move {absolute; offset} zipper = 
-    match absolute with
-    | true -> swipe offset zipper
-    | false -> 
-        let current_page = current_index zipper in
-        swipe (current_page + offset) zipper
+let move { absolute; offset } zipper =
+  match absolute with
+  | false ->
+      swipe offset zipper
+  | true ->
+      let current_page = current_index zipper in
+      swipe (offset - current_page) zipper
 
 let is_at_start = function [], _ -> true | _ :: _, _ -> false
 let is_at_end = function _, [] -> true | _, _ :: _ -> false

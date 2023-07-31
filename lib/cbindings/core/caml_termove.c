@@ -43,11 +43,18 @@ struct termios orig_termios;
 
 void enableRawMode() {
     tcgetattr(STDIN_FILENO, &orig_termios);
-    struct termios raw = orig_termios;
-  
+    raw = orig_termios;
     raw.c_lflag &= ~(ECHO | ICANON);
     // raw.c_lflag &= ~(ICANON);
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+}
+
+void disableCanonic() {
+    raw.c_lflag &= ~(ICANON);
+}
+
+void enableCanonic() {
+    raw.c_lflag |= ICANON;
 }
 
 void disableRawMode() {
@@ -74,6 +81,18 @@ CAMLprim value caml_enable_raw_mode(value unit) {
 CAMLprim value caml_disable_raw_mode(value unit) {
     CAMLparam1(unit);
     disableRawMode();
+    CAMLreturn(unit);
+}
+
+CAMLprim value caml_enable_canonic(value unit) {
+    CAMLparam1(unit);
+    enableCanonic();
+    CAMLreturn(unit);
+}
+
+CAMLprim value caml_disable_canonic(value unit) {
+    CAMLparam1(unit);
+    disableCanonic();
     CAMLreturn(unit);
 }
 

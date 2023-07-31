@@ -17,6 +17,10 @@
 
 open Cbindings
 
+let debug_string content =
+  Out_channel.with_open_text "debug" (fun oc -> Printf.fprintf oc "%s\n" content)
+
+let debug_int n = n |> Int.to_string |> debug_string
 let nb_channel = 4L
 (* let scale = 0.90 *)
 
@@ -142,39 +146,35 @@ let parser_move_kind content =
       |> Option.to_result ~none:`ErrorIndexParsing
 
 let parser_page_movement content =
-  let substring = sub_first content in
-  let () = Out_channel.with_open_bin "debug" (fun oc -> 
-    Printf.fprintf oc "substring = %s\n" content
-  ) in
-  let parser_res = parser_move_kind substring in
+  let parser_res = parser_move_kind content in
   parser_res
   |> Result.map (fun kind -> `GotoPage kind)
   |> Result.fold ~ok:Fun.id ~error:Fun.id
 
 let parse_book_movement content =
-  let substring = sub_first content in
-  let parser_res = parser_move_kind substring in
+  let parser_res = parser_move_kind content in
   parser_res
   |> Result.map (fun kind -> `GotoBook kind)
   |> Result.fold ~ok:Fun.id ~error:Fun.id
 
 let read_movement ~parser () =
-  let len = 1_000 in
-  let bytes = Bytes.create len in
-  let read = Unix.read Unix.stdin bytes 0 len in
+  let () = Termove.enable_canonic () in
+  let line = read_line () in
   let res =
-    match read with
+    match String.length line with
     | n when n <= 0 ->
         `ReadError
-    | read ->
-        let str_read = Bytes.sub_string bytes 0 read in
+    | _ ->
+        let str_read = line in
         parser str_read
   in
+  let () = Termove.disable_canonic () in
   res
 
 let read_choice () =
-  let bytes = Bytes.create 1 in
-  let _ = Unix.read Unix.stdin bytes 0 (Bytes.length bytes) in
+  let len = 1 in
+  let bytes = Bytes.create len in
+  let _ = Unix.read Unix.stdin bytes 0 len in
   let c = Bytes.get bytes 0 in
   match c with
   | 'j' | 'J' ->
@@ -239,15 +239,17 @@ let read_collection mode =
           let zipper, res =
             match res with
             | (`Left | `Quit | `Right) as e ->
-              zipper, e
-            | `GotoBook kind -> 
-              let res = 
-                match kind.Zipper.offset <= 0 with 
-                | true -> `Left
-                | false -> `Right
-              in
-              let zipper =  Zipper.move kind zipper in
-              zipper, res
+                (zipper, e)
+            | `GotoBook kind ->
+                let res =
+                  match kind.Zipper.offset <= 0 with
+                  | true ->
+                      `Left
+                  | false ->
+                      `Right
+                in
+                let zipper = Zipper.move kind zipper in
+                (zipper, res)
           in
           (zipper, res)
   )
