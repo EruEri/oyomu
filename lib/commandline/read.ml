@@ -59,8 +59,14 @@ let cmd run =
   let info = Cmd.info name ~doc:cmd_doc ~man:cmd_man in
   Cmd.v info (cmd_term run)
 
+let archive_of_file file =
+  let archive_path = file in
+  let name = Filename.remove_extension @@ Filename.basename @@ file in
+  Libyomu.Comic.{ archive_path; name }
+
 let run cmd_read =
   let { files; mode } = cmd_read in
+  let files = List.map archive_of_file files in
   let () = Libyomu.Drawing.read_comics mode files () in
   ()
 

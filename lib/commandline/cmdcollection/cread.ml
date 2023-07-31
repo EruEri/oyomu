@@ -94,8 +94,16 @@ let read_normal all specifics =
            | true ->
                let dir_content = Sys.readdir path in
                let ldir_content = Array.to_list dir_content in
-               let content = ldir_content |> List.map @@ ( // ) path in
-               Some content
+               let ldir_content = List.sort String.compare ldir_content in
+               let archive_paths =
+                 ldir_content
+                 |> List.map
+                    @@ fun file ->
+                    let archive_path = path // file in
+                    let name = Printf.sprintf "%s-%s" name file in
+                    Libyomu.Comic.{ archive_path; name }
+               in
+               Some archive_paths
        )
   in
 
@@ -109,6 +117,7 @@ let read_normal all specifics =
            | true ->
                let dir_content = Sys.readdir path in
                let ldir_content = Array.to_list dir_content in
+               let ldir_content = List.sort String.compare ldir_content in
                let content =
                  ldir_content
                  |> List.filter_map (fun file ->
@@ -116,7 +125,10 @@ let read_normal all specifics =
                           int_of_string_opt @@ Filename.remove_extension file
                         with
                         | Some n when n = index ->
-                            Option.some @@ (path // file)
+                            let name = Printf.sprintf "%s-%s" name file in
+                            let archive_path = path // file in
+                            let ar = Libyomu.Comic.{ archive_path; name } in
+                            Option.some ar
                         | None | Some _ ->
                             None
                     )
@@ -124,6 +136,7 @@ let read_normal all specifics =
                Some content
        )
   in
+
   archives @ archives_spe |> List.flatten
 
 let read_encrypted ~key all specifics =

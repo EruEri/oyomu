@@ -29,8 +29,9 @@ type syomu_item = {
 type syomurc = { scomics : syomu_item list } [@@deriving yojson]
 type page = { data : string }
 type comic = { name : string; pages : page list }
-
 type reading_item = (comic, string) Either.t
+
+type named_archive = { name : string; archive_path : string }
 (** Either an unzip comic or it archive path *)
 
 type reading_collection = reading_item list
@@ -130,8 +131,11 @@ module Syomu = struct
            let path = App.yomu_hidden_comics // s.encrypted_file_name in
            match Encryption.decrpty_file ~key ~iv:s.iv path () with
            | Ok (Some data) ->
-               Util.Io.dump_tmp ~name:s.encrypted_file_name
-                 ~extension:App.tmp_extension data ()
+               let archive_path =
+                 Util.Io.dump_tmp ~name:s.encrypted_file_name
+                   ~extension:App.tmp_extension data ()
+               in
+               { archive_path; name = s.serie }
            | Ok None ->
                raise @@ Error.yomu_error
                @@ Error.DecryptionError

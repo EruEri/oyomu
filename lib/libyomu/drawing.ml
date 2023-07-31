@@ -207,14 +207,14 @@ let read_page comic_name mode ignored zipper =
       let option = read_choice () in
       option
 
-let read_item mode (item : ('a, string) Either.t) =
+let read_item mode (item : ('a, Comic.named_archive) Either.t) =
   let (Comic.{ pages; name } as c) =
     match item with
     | Either.Left comic ->
         comic
-    | Either.Right right ->
-        let comic = Comic.CZip.comic_of_zip right in
-        comic
+    | Either.Right { name; archive_path } ->
+        let comic = Comic.CZip.comic_of_zip archive_path in
+        { comic with name }
   in
 
   let z_pages = Zipper.of_list pages in
@@ -254,7 +254,7 @@ let read_collection mode =
           (zipper, res)
   )
 
-let read_comics mode (archives : string list) () =
+let read_comics mode (archives : Comic.named_archive list) () =
   let () = Termove.start_window () in
   let () = MagickWand.magick_wand_genesis () in
 
