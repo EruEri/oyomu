@@ -30,7 +30,7 @@ let right = function
       (t :: lhs, q)
 
 let rec swipe n = function
-  | ([], _) as zipper when n > 0 ->
+  | (([] | _ :: []), _) as zipper when n > 0 ->
       zipper
   | (_, []) as zipper when n < 0 ->
       zipper
