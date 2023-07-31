@@ -170,7 +170,9 @@ let run cmd =
   let archives =
     match key_opt with
     | Some key ->
-        read_encrypted ~key all specifics
+        let ars = read_encrypted ~key all specifics in
+        let () = Gc.compact () in
+        ars
     | None ->
         read_normal all specifics
   in

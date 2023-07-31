@@ -140,11 +140,13 @@ let parser_move_kind content =
             in
             (false, number)
         | _ ->
-            let n = content |> int_of_string_opt |> Option.map abs in
+            let n =
+              content |> int_of_string_opt |> Option.map @@ fun n -> abs n - 1
+            in
             (true, n)
       in
       offset
-      |> Option.map (fun n -> Zipper.{ absolute; offset = n - 1 })
+      |> Option.map (fun n -> Zipper.{ absolute; offset = n })
       |> Option.to_result ~none:`ErrorIndexParsing
 
 let parser_page_movement content =
