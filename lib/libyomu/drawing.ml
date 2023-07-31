@@ -76,7 +76,7 @@ let draw_image (winsize : Winsize.t) mode ~width ~height ~row_stride pixels =
   let () = Chafa.chafa_canvas_config_unref config in
   ()
 
-let draw_page comic_name mode (page : Comic.page) =
+let draw_page ~index comic_name mode (page : Comic.page) =
   let winsize = Winsize.get () in
   let () = Termove.redraw_empty () in
   let () = Termove.set_cursor_at 0 0 in
@@ -106,7 +106,9 @@ let draw_page comic_name mode (page : Comic.page) =
         ()
   in
   let () = Termove.set_cursor_at winsize.ws_row 0 in
-  let () = Termove.draw_string comic_name in
+  let () =
+    Termove.draw_string @@ Printf.sprintf "p: %u || %s" index comic_name
+  in
   let () = MagickWand.destroy_magick_wand magick_wand in
   ()
 
@@ -142,7 +144,7 @@ let parser_move_kind content =
             (true, n)
       in
       offset
-      |> Option.map (fun n -> Zipper.{ absolute; offset = n })
+      |> Option.map (fun n -> Zipper.{ absolute; offset = n - 1 })
       |> Option.to_result ~none:`ErrorIndexParsing
 
 let parser_page_movement content =
@@ -190,7 +192,8 @@ let read_choice () =
   | _ ->
       `Ignore
 
-let read_page comic_name mode ignored zipper =
+let read_page comic_name mode ignored index zipper =
+  let index = index + 1 in
   let (page : Comic.page option) = Zipper.top_left zipper in
   match page with
   | None ->
@@ -201,7 +204,7 @@ let read_page comic_name mode ignored zipper =
         | true ->
             ()
         | false ->
-            let () = draw_page comic_name mode page in
+            let () = draw_page ~index comic_name mode page in
             ()
       in
       let option = read_choice () in
@@ -218,7 +221,7 @@ let read_item mode (item : ('a, Comic.named_archive) Either.t) =
   in
 
   let z_pages = Zipper.of_list pages in
-  let res = Zipper.action (read_page name mode) z_pages in
+  let res = Zipper.action 0 (read_page name mode) z_pages in
   (c, res)
 
 let read_collection mode =

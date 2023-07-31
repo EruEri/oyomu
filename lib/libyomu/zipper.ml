@@ -81,25 +81,27 @@ let rec action_alt f zipper =
         res
   with _ -> res
 
-let rec action ?(ignored = false) f zipper =
-  let res = f ignored zipper in
+let rec action ?(ignored = false) index f zipper =
+  let res = f ignored index zipper in
   match res with
   | `Right as r -> (
-      try action f @@ left zipper with _ -> r
+      try action (index + 1) f @@ left zipper with _ -> r
     )
   | `Left as l -> (
-      try action f @@ right zipper with _ -> l
+      try action (index - 1) f @@ right zipper with _ -> l
     )
   | `Ignore ->
-      action ~ignored:true f zipper
+      action index ~ignored:true f zipper
   | `MovNoValue ->
-      action ~ignored:true f zipper
+      action index ~ignored:true f zipper
   | `ErrorIndexParsing ->
-      action ~ignored:true f zipper
+      action index ~ignored:true f zipper
   | `ReadError ->
-      action ~ignored:true f zipper
+      action index ~ignored:true f zipper
   | `GotoPage kind ->
-      action f @@ move kind zipper
+      let zipper = move kind zipper in
+      let cur_page = current_index zipper in
+      action cur_page f @@ zipper
   | `GotoBook _ as e ->
       e
   | `Quit as q ->
