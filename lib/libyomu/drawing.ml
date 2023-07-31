@@ -106,6 +106,72 @@ let draw_page comic_name mode (page : Comic.page) =
   let () = MagickWand.destroy_magick_wand magick_wand in
   ()
 
+let sub_first s =
+  if s = String.empty then
+    s
+  else
+    let len = String.length s in
+    String.sub s 1 (len - 1)
+
+let parser_move_kind content =
+  match content = String.empty with
+  | true ->
+      let x = Error `MovNoValue in
+      x
+  | false ->
+      let c = String.get content 0 in
+      let absolute, offset =
+        match c with
+        | '+' ->
+            let number_str = sub_first content in
+            let number = int_of_string_opt number_str in
+            (false, number)
+        | '-' ->
+            let number_str = sub_first content in
+            let number =
+              number_str |> int_of_string_opt
+              |> Option.map (fun n -> ( ~- ) @@ abs n)
+            in
+            (false, number)
+        | _ ->
+            let n = content |> int_of_string_opt |> Option.map abs in
+            (true, n)
+      in
+      offset
+      |> Option.map (fun n -> Zipper.{ absolute; offset = n })
+      |> Option.to_result ~none:`ErrorIndexParsing
+
+let parser_page_movement content =
+  let substring = sub_first content in
+  let () = Out_channel.with_open_bin "debug" (fun oc -> 
+    Printf.fprintf oc "substring = %s\n" content
+  ) in
+  let parser_res = parser_move_kind substring in
+  parser_res
+  |> Result.map (fun kind -> `GotoPage kind)
+  |> Result.fold ~ok:Fun.id ~error:Fun.id
+
+let parse_book_movement content =
+  let substring = sub_first content in
+  let parser_res = parser_move_kind substring in
+  parser_res
+  |> Result.map (fun kind -> `GotoBook kind)
+  |> Result.fold ~ok:Fun.id ~error:Fun.id
+
+let read_movement ~parser () =
+  let len = 1_000 in
+  let bytes = Bytes.create len in
+  let read = Unix.read Unix.stdin bytes 0 len in
+  let res =
+    match read with
+    | n when n <= 0 ->
+        `ReadError
+    | read ->
+        let str_read = Bytes.sub_string bytes 0 read in
+        parser str_read
+  in
+  res
+
 let read_choice () =
   let bytes = Bytes.create 1 in
   let _ = Unix.read Unix.stdin bytes 0 (Bytes.length bytes) in
@@ -117,6 +183,10 @@ let read_choice () =
       `Right
   | 'q' | 'Q' ->
       `Quit
+  | 'b' ->
+      read_movement ~parser:parse_book_movement ()
+  | 'g' ->
+      read_movement ~parser:parser_page_movement ()
   | _ ->
       `Ignore
 
@@ -166,13 +236,18 @@ let read_collection mode =
             | Either.Left _ ->
                 zipper
           in
-          let res =
+          let zipper, res =
             match res with
-            | `Ignore ->
-                failwith
-                  "Unreachable: Ignore doesnt change the state of the zipper"
             | (`Left | `Quit | `Right) as e ->
-                e
+              zipper, e
+            | `GotoBook kind -> 
+              let res = 
+                match kind.Zipper.offset <= 0 with 
+                | true -> `Left
+                | false -> `Right
+              in
+              let zipper =  Zipper.move kind zipper in
+              zipper, res
           in
           (zipper, res)
   )

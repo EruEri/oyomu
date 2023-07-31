@@ -17,6 +17,8 @@
 
 type 'a t = 'a list * 'a list
 
+type move_kind = { absolute : bool; offset : int }
+
 exception ZipperOutLeft
 exception ZipperOutRight
 
@@ -27,6 +29,28 @@ let right = function
       raise ZipperOutRight
   | lhs, t :: q ->
       (t :: lhs, q)
+
+let rec swipe n = function
+  | ([], _) as zipper when n > 0 ->
+      zipper
+  | (_, []) as zipper when n < 0 ->
+      zipper
+  | zipper when n = 0 ->
+      zipper
+  | zipper when n > 0 ->
+      swipe (n - 1) (left zipper)
+  | zipper ->
+      swipe (n + 1) (right zipper)
+
+let current_index zipper = 
+    List.length @@ snd zipper
+
+let move {absolute; offset} zipper = 
+    match absolute with
+    | true -> swipe offset zipper
+    | false -> 
+        let current_page = current_index zipper in
+        swipe (current_page + offset) zipper
 
 let is_at_start = function [], _ -> true | _ :: _, _ -> false
 let is_at_end = function _, [] -> true | _, _ :: _ -> false
@@ -60,14 +84,24 @@ let rec action_alt f zipper =
 
 let rec action ?(ignored = false) f zipper =
   let res = f ignored zipper in
-  try
-    match res with
-    | `Right ->
-        action f @@ left zipper
-    | `Left ->
-        action f @@ right zipper
-    | `Ignore ->
-        action ~ignored:true f zipper
-    | `Quit ->
-        res
-  with _ -> res
+  match res with
+  | `Right as r -> (
+      try action f @@ left zipper with _ -> r
+    )
+  | `Left as l -> (
+      try action f @@ right zipper with _ -> l
+    )
+  | `Ignore ->
+      action ~ignored:true f zipper
+  | `MovNoValue ->
+      action ~ignored:true f zipper
+  | `ErrorIndexParsing ->
+      action ~ignored:true f zipper
+  | `ReadError ->
+      action ~ignored:true f zipper
+  | `GotoPage kind ->
+      action f @@ move kind zipper
+  | `GotoBook _ as e ->
+      e
+  | `Quit as q ->
+      q
