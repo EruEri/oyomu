@@ -73,9 +73,9 @@ let rec action_alt f zipper =
   let new_zipper, res = f zipper in
   try
     match res with
-    | `Right ->
-        action_alt f @@ left new_zipper
     | `Left ->
+        action_alt f @@ left new_zipper
+    | `Right ->
         action_alt f @@ right new_zipper
     | `Quit ->
         res

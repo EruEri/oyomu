@@ -219,7 +219,9 @@ let read_item mode (item : ('a, Comic.named_archive) Either.t) =
         comic
     | Either.Right { name; archive_path } ->
         let comic = Comic.CZip.comic_of_zip archive_path in
+        let () = Gc.major () in
         let () = Gc.compact () in
+
         { comic with name }
   in
 
@@ -247,13 +249,17 @@ let read_collection mode =
             | (`Left | `Quit | `Right) as e ->
                 (zipper, e)
             | `GotoBook kind ->
-                let res =
-                  match kind.Zipper.offset <= 0 with
-                  | true ->
-                      `Left
-                  | false ->
-                      `Right
+                let n, res =
+                  match kind.Zipper.offset with
+                  | n when n < 0 && not kind.absolute ->
+                      (1, `Right)
+                  | n when n > 0 && not kind.absolute ->
+                      (-1, `Left)
+                  | _ ->
+                      (-1, `Left)
                 in
+                (* Need this offset [n] since the since [res] will also move the zipper by one so we remove one by the movement *)
+                let kind = { kind with offset = kind.offset + n } in
                 let zipper = Zipper.move kind zipper in
                 (zipper, res)
           in
