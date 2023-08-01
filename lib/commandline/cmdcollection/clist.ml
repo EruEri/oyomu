@@ -60,7 +60,7 @@ let normal_entries ~comic_only series =
     | true ->
         []
     | false ->
-        Array.to_list @@ Sys.readdir path
+        List.sort String.compare @@ Array.to_list @@ Sys.readdir path
   in
   let ( // ) = Filename.concat in
   let always = series = [] in
