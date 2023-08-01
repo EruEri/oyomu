@@ -23,10 +23,10 @@ let doc = "Manage Oyomu collection"
 let man =
   [
     `S Manpage.s_description;
-    `P "$(iname) allows to manager and read your comic collection";
+    `P "$(iname) allows you to manager and read your comic collection";
   ]
 
 let root_info = Cmd.info name ~doc ~man
-let subcommands = [ Add.command; Cread.command; Clist.command; Cdelete.command ]
+let subcommands = [ Add.command; Cread.command; Clist.command; Cdelete.command; Cinit.command ]
 let parse () = Cmd.group root_info subcommands
 let command = parse ()
