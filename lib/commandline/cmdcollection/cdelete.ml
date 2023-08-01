@@ -54,7 +54,28 @@ let cmd_term run =
   Term.(const combine $ encrypted_term $ all_term $ specifics)
 
 let doc = "Delete comics from collection"
-let man = [ `S Manpage.s_description; `P doc ]
+
+let man_example =
+  [
+    `S Manpage.s_examples;
+    `I
+      ( "To delete all volume from the series $(b,ComicA) and $(b,ComicB)",
+        "$(iname) --all ComicA, ComicB"
+      );
+    `I
+      ( "To delete the first volume from the serie $(b,ComicB)",
+        "$(iname) 1.ComicB"
+      );
+    `P
+      "To delete comics which are encrypted, you should also provide the \
+       $(b,e) flag";
+    `I
+      ( "To delete the third volume of the encrypted serie $(b,ComicE)",
+        "$(iname) -e 3.ComicE"
+      );
+  ]
+
+let man = [ `S Manpage.s_description; `P doc ] @ man_example
 
 let cmd run =
   let info = Cmd.info name ~doc ~man in

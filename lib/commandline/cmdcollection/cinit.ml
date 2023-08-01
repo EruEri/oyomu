@@ -47,20 +47,20 @@ let cmd_man =
     `I
       ( "Normal:",
         Printf.sprintf
-          "This side stores your comics directly in your $(b, \
-           \\%cXDG_DATA_HOME/yomu/comics) directory"
+          "This side stores your comics directly in your \
+           $(b,\\%cXDG_DATA_HOME/yomu/comics) directory"
           '$'
       );
     `I
       ( "Encrypted:",
         Printf.sprintf
-          "This side stores your comics by encrypting them in your $(b, \
-           \\%cXDG_DATA_HOME/yomu/.scomics)."
+          "This side stores your comics by encrypting them in your \
+           $(b,\\%cXDG_DATA_HOME/yomu/.scomics)."
           '$'
       );
     `P
-      "Note that, adding the same comic in $(b,Normal) and $(c,Encrypted) will \
-       $(b,not) causeduplicate issue since there treated as 2 separated \
+      "Note that, adding the same comic in $(b,Normal) and $(b,Encrypted) will \
+       $(b,not) cause duplicate issue since they are treated as 2 separated \
        collections\n\
       \    ";
   ]
