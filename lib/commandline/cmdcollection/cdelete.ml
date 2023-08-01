@@ -81,13 +81,14 @@ let cmd run =
   let info = Cmd.info name ~doc ~man in
   Cmd.v info (cmd_term run)
 
+(** Return *)
 let rmrf_safe ?message path =
   match Util.FileSys.rmrf path () with
   | () ->
-      None
+      Ok ()
   | exception _ ->
       let () = Option.iter print_string message in
-      Some ()
+      Error ()
 
 let delete_normal all specifics =
   let ( // ) = Libyomu.App.( // ) in
@@ -108,7 +109,7 @@ let delete_normal all specifics =
     | true ->
         let dir_content = Sys.readdir path in
         let ldir_content = Array.to_list dir_content in
-        let content =
+        let _ =
           ldir_content
           |> List.map (fun file ->
                  match int_of_string_opt @@ Filename.remove_extension file with
@@ -117,19 +118,18 @@ let delete_normal all specifics =
                      let error_message =
                        Printf.sprintf "No file: %s\n%!" comic_path
                      in
-                     Option.is_none
-                     @@ rmrf_safe ~message:error_message comic_path
+                     Result.is_ok @@ rmrf_safe ~message:error_message comic_path
                  | None | Some _ ->
                      false
              )
         in
-        let () =
-          match List.exists Fun.id content with
-          | false ->
-              ()
-          | true ->
-              failwith ""
-        in
+        (* let () =
+             match List.exists Fun.id content with
+             | false ->
+                 ()
+             | true ->
+                 failwith ""
+           in *)
         Some serie
   in
 
@@ -185,7 +185,7 @@ let run cmd =
         let key =
           Option.some
           @@ Libyomu.Input.ask_password_encrypted
-               ~prompt:"Enter the master password : " ()
+               ~prompt:Cmdcommon.password_prompt ()
         in
         key
   in

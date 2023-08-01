@@ -29,13 +29,26 @@ type syomu_item = {
 type syomurc = { scomics : syomu_item list } [@@deriving yojson]
 type page = { data : string }
 type comic = { name : string; pages : page list }
-type reading_item = (comic, string) Either.t
 
-type named_archive = { name : string; archive_path : string }
+type reading_item = (comic, string) Either.t
 (** Either an unzip comic or it archive path *)
 
+type named_archive = { name : string; archive_path : string }
 type reading_collection = reading_item list
 type collection = comic list
+
+module NamedArchive = struct
+  let compare_named_archive lhs rhs =
+    let ( <=> ) = compare in
+    let ( >== ) = Option.bind in
+    let head_opt = function [] -> None | t :: _ -> Some t in
+    let int_name { archive_path = _; name } =
+      name |> Filename.basename |> Filename.remove_extension
+      |> String.split_on_char '-' |> List.rev |> head_opt >== int_of_string_opt
+      |> Option.value ~default:1
+    in
+    int_name lhs <=> int_name rhs
+end
 
 module Syomu = struct
   let encryption_iv =
@@ -144,6 +157,7 @@ module Syomu = struct
            | Error e ->
                raise e
        )
+    |> List.sort NamedArchive.compare_named_archive
 
   let serie_exists serie syomurc =
     syomurc.scomics |> List.exists (fun scomic -> scomic.serie = serie)

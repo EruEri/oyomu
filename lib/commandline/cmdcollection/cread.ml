@@ -117,14 +117,14 @@ let read_normal all specifics =
            | true ->
                let dir_content = Sys.readdir path in
                let ldir_content = Array.to_list dir_content in
-               let ldir_content = List.sort String.compare ldir_content in
                let archive_paths =
                  ldir_content
-                 |> List.map
-                    @@ fun file ->
-                    let archive_path = path // file in
-                    let name = Printf.sprintf "%s-%s" name file in
-                    Libyomu.Comic.{ archive_path; name }
+                 |> List.map (fun file ->
+                        let archive_path = path // file in
+                        let name = Printf.sprintf "%s-%s" name file in
+                        Libyomu.Comic.{ archive_path; name }
+                    )
+                 |> List.sort Libyomu.Comic.NamedArchive.compare_named_archive
                in
                Some archive_paths
        )
@@ -183,7 +183,7 @@ let run cmd =
         let key =
           Option.some
           @@ Libyomu.Input.ask_password_encrypted
-               ~prompt:"Enter the master password : " ()
+               ~prompt:Cmdcommon.password_prompt ()
         in
         key
   in

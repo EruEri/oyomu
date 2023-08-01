@@ -121,7 +121,7 @@ let run cmd_read =
         let key =
           Option.some
           @@ Libyomu.Input.ask_password_encrypted
-               ~prompt:"Enter the master password : " ()
+               ~prompt:Cmdcommon.password_prompt ()
         in
         key
   in

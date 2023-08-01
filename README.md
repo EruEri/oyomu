@@ -109,6 +109,7 @@ Oyomu has 2 strategies to store your comic:
   git clone https://github.com/EruEri/oyomu
   cd oyomu
   dune build
+  dune install
   ```
 
 ## Future

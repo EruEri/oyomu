@@ -29,6 +29,8 @@ let check_yomu_initialiaze () =
   | Error _ ->
       raise @@ Libyomu.Error.(yomu_error @@ Yomu_Not_Initialized)
 
+let password_prompt = "Enter the master password : "
+
 let read_common_description =
   [
     `S "KEY BINDINGS";

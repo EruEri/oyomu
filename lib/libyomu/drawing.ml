@@ -219,6 +219,7 @@ let read_item mode (item : ('a, Comic.named_archive) Either.t) =
         comic
     | Either.Right { name; archive_path } ->
         let comic = Comic.CZip.comic_of_zip archive_path in
+        let () = Gc.compact () in
         { comic with name }
   in
 
