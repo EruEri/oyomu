@@ -15,8 +15,74 @@
 ;*                                                                                            *;
 ;**********************************************************************************************;
 
-(include_subdirs no)
+(rule
+ (with-stdout-to
+  oyomu.1
+  (run %{bin:oyomu} --help=groff)))
 
-(executable
- (name discover)
- (libraries dune-configurator))
+(install
+ (section man)
+ (files oyomu.1))
+
+(rule
+ (with-stdout-to
+  oyomu-read.1
+  (run %{bin:oyomu} read --help=groff)))
+
+(install
+ (section man)
+ (files oyomu-read.1))
+
+(rule
+ (with-stdout-to
+  oyomu-collection.1
+  (run %{bin:oyomu} collection --help=groff)))
+
+(install
+ (section man)
+ (files oyomu-collection.1))
+
+(rule
+ (with-stdout-to
+  oyomu-collection-add.1
+  (run %{bin:oyomu} collection add --help=groff)))
+
+(install
+ (section man)
+ (files oyomu-collection-add.1))
+
+(rule
+ (with-stdout-to
+  oyomu-collection-delete.1
+  (run %{bin:oyomu} collection delete --help=groff)))
+
+(install
+ (section man)
+ (files oyomu-collection-delete.1))
+
+(rule
+ (with-stdout-to
+  oyomu-collection-init.1
+  (run %{bin:oyomu} collection init --help=groff)))
+
+(install
+ (section man)
+ (files oyomu-collection-init.1))
+
+(rule
+ (with-stdout-to
+  oyomu-collection-list.1
+  (run %{bin:oyomu} collection list --help=groff)))
+
+(install
+ (section man)
+ (files oyomu-collection-list.1))
+
+(rule
+ (with-stdout-to
+  oyomu-collection-read.1
+  (run %{bin:oyomu} collection read --help=groff)))
+
+(install
+ (section man)
+ (files oyomu-collection-read.1))
