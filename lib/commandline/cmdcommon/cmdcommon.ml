@@ -15,7 +15,6 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-
 let check_yomu_hidden () =
   match Libyomu.Init.check_yomu_hidden () with
   | Ok () ->
@@ -30,33 +29,16 @@ let check_yomu_initialiaze () =
   | Error _ ->
       raise @@ Libyomu.Error.(yomu_error @@ Yomu_Not_Initialized)
 
-let read_common_description = 
+let read_common_description =
   [
-    `S "COMMANDS";
-    `I
-    ( "To go to the next page",
-      "Press $(b,'l')"
-    );
-    `I
-    ( "To go to the precious page",
-      "Press $(b,'j')"
-    );
-    `I
-    ( "To quit",
-      "Press $(b,'q')"
-    );
-    `I
-    ( "To move to the page 10",
-      "Press $(b,'g10')"
-    );
-    `I
-    ( "To move 10 pages forward",
-      "Press $(b,'g+10')"
-    );
-    `I
-    ( "To move 10 pages backward",
-      "Press $(b,'g-10')"
-    );
-    `P "If you had loaded multiple comics, you can do the same movement than with the pages but with the book by replacing the 'g' by 'b'"
-    ;
+    `S "KEY BINDINGS";
+    `I ("To go to the next page", "Press $(b,'l')");
+    `I ("To go to the precious page", "Press $(b,'j')");
+    `I ("To quit", "Press $(b,'q')");
+    `I ("To move to the page 10", "Press $(b,'g10')");
+    `I ("To move 10 pages forward", "Press $(b,'g+10')");
+    `I ("To move 10 pages backward", "Press $(b,'g-10')");
+    `P
+      "If you had loaded multiple comics, you can do the same movement than \
+       with the pages but with the book by replacing the 'g' by 'b'";
   ]

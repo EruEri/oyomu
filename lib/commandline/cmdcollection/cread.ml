@@ -75,8 +75,31 @@ let cmd_term run =
   in
   Term.(const combine $ encrypted_term $ pixel_term $ all_term $ specifics)
 
+let man_example =
+  [
+    `S Manpage.s_examples;
+    `I
+      ( "To read all volume from the series $(b,ComicA) and $(b,ComicB)",
+        "$(iname) --all ComicA, ComicB"
+      );
+    `I
+      ( "To read the first volume from the serie $(b,ComicB)",
+        "$(iname) 1.ComicB"
+      );
+    `P
+      "To read comics which are encrypted, you should also provide the $(b,-e) \
+       flag";
+    `I
+      ( "To read the third volume of the encrypted serie $(b,ComicE)",
+        "$(iname) -e 3.ComicE"
+      );
+  ]
+
 let doc = "Read comics from collection"
-let man = [ `S Manpage.s_description; `P "Read comics from the collection" ] @ Cmdcommon.read_common_description
+
+let man =
+  [ `S Manpage.s_description; `P "Read comics from the collection" ]
+  @ man_example @ Cmdcommon.read_common_description
 
 let cmd run =
   let info = Cmd.info name ~doc ~man in
