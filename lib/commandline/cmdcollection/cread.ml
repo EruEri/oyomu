@@ -76,7 +76,7 @@ let cmd_term run =
   Term.(const combine $ encrypted_term $ pixel_term $ all_term $ specifics)
 
 let doc = "Read comics from collection"
-let man = [ `S Manpage.s_description; `P "Read comics from the collection" ]
+let man = [ `S Manpage.s_description; `P "Read comics from the collection" ] @ Cmdcommon.read_common_description
 
 let cmd run =
   let info = Cmd.info name ~doc ~man in

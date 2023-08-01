@@ -7,7 +7,7 @@ Your terminal should at least support one of this format for the page to be some
 - Iterm
 - Kitty
 
-- Currently only the zip archive are handle properly
+Currently only the zip archive are handle properly
 
 ## How to use
 
@@ -77,10 +77,10 @@ To Initialize the collection use ```ìnit```
 
 Oyomu has 2 strategies to store your comic:
 - Normal:
-    - Your comics are in your **$XDG_DATA_DIR/yomu/comics** directory where each folder holds the the volumes of the series
+    - Your comics are in your **$XDG_DATA_DIR/yomu/comics** directory where each folder holds the volumes of the serie
 - Encrypted:
     - Your comics are in your **$XDG_DATA_DIR/yomu/.scomics** directory and are encrypted with a password that the ```ìnit``` 
-    wizard will ask you to set if the option **--encryption** is set;
+    wizard will ask you to set if the option **--encryption** is set
 
 
 #### Add / Delete / List

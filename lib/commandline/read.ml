@@ -53,7 +53,7 @@ let cmd_term run =
   Term.(const combine $ file_term $ pixel_term)
 
 let cmd_doc = "Read comics"
-let cmd_man = [ `S Manpage.s_description; `P "Read commic" ]
+let cmd_man = [ `S Manpage.s_description; `P "Read commics" ] @ Cmdcommon.read_common_description
 
 let cmd run =
   let info = Cmd.info name ~doc:cmd_doc ~man:cmd_man in
