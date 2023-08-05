@@ -15,39 +15,5 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-let yomu_name = "yomu"
-let tmp_extension = yomu_name
-let ( // ) = Filename.concat
-let xdg = Xdg.create ~env:Sys.getenv_opt ()
-let xdg_data = Xdg.data_dir xdg
-let xdg_config = Xdg.config_dir xdg
-let comics_folder_name = "comics"
-let hidden_folder_name = ".scomics"
-let hidden_config_name = ".syomurc"
-let yomu_share = xdg_data // yomu_name
-let yomu_comics = yomu_share // comics_folder_name
-let yomu_hidden_comics = yomu_share // hidden_folder_name
+let name = "edit"
 
-(** [$XDG_DATA_HOME/share/yomu/.scomics/.syomurc]*)
-let yomu_hidden_config = yomu_hidden_comics // hidden_config_name
-
-let config_yomu = xdg_config // yomu_name
-let is_app_folder_exist () = Sys.file_exists yomu_share
-
-let check_app_initialized () =
-  let () =
-    if not @@ is_app_folder_exist () then
-      raise @@ Error.yomu_error @@ Yomu_Not_Initialized
-  in
-  ()
-
-module KeyBindingConst = struct
-
-  let key_variable_make = 
-    Printf.sprintf "YOMU_%s_KEY"
-
-  let key_next_page = key_variable_make "NEXT_PAGE"
-  let key_previous_page = key_variable_make "PREV_PAGE"
-  let key_goto_page = key_variable_make "GOTO_PAGE"
-  let key_goto_book = key_variable_make "GOTO_BOOK"
-end
