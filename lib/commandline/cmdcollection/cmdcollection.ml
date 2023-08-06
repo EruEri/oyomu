@@ -36,6 +36,7 @@ let subcommands =
     Cdelete.command;
     Cinit.command;
     Cdecrypt.command;
+    Crename.command;
   ]
 
 let parse () = Cmd.group root_info subcommands

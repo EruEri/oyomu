@@ -17,6 +17,14 @@
 
 open Cmdliner
 
+module StringSet = Set.Make (struct
+  type t = String.t
+
+  let compare lhs rhs =
+    let ( <=> ) = String.compare in
+    Filename.remove_extension lhs <=> Filename.remove_extension rhs
+end)
+
 let name = "rename"
 
 type t = {
@@ -72,18 +80,54 @@ let rename_normal merge ~old_name ~new_name =
   let old_path = Libyomu.App.yomu_share // old_name in
   let new_path = Libyomu.App.yomu_share // new_name in
   let exist_old = Sys.file_exists old_path && Sys.is_directory old_path in
-  let exist_new = Sys.file_exists new_path in
+  let exist_new = Sys.file_exists new_path && Sys.is_directory new_path in
   match (exist_old, exist_new) with
   | true, false ->
       Sys.rename old_path new_path
   | false, (true | false) ->
-      failwith "Source file doesnt exit"
+      raise
+      @@ Libyomu.Error.(yomu_error @@ Rename_Error (Comic_not_exist old_name))
   | true, true -> (
       match merge with
       | false ->
-          failwith "Source directory already exist"
+          raise
+          @@ Libyomu.Error.(
+               yomu_error @@ Rename_Error (Comic_already_exist new_name)
+             )
       | true ->
-          failwith "TODO"
+          let old_content =
+            old_path |> Sys.readdir |> Array.to_seq |> StringSet.of_seq
+          in
+          let new_content =
+            new_path |> Sys.readdir |> Array.to_seq |> StringSet.of_seq
+          in
+          let conflicting_set = StringSet.inter old_content new_content in
+          let _ =
+            match StringSet.is_empty conflicting_set with
+            | false ->
+                let conflits = StringSet.elements conflicting_set in
+                raise
+                @@ Libyomu.Error.(
+                     yomu_error
+                     @@ Rename_Error
+                          (Complicting_volume
+                             {
+                               oldname = old_name;
+                               newname = new_name;
+                               conflits;
+                             }
+                          )
+                   )
+            | true ->
+                StringSet.iter
+                  (fun elt ->
+                    let oldpath_comic = old_path // elt in
+                    let newpath_comic = new_path // elt in
+                    Sys.rename oldpath_comic newpath_comic
+                  )
+                  old_content
+          in
+          ()
     )
 
 let cmd run =

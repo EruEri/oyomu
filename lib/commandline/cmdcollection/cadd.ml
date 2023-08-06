@@ -83,7 +83,7 @@ let add_normal ~existing ~comic_name indexed_archives =
     | Some c ->
         c
     | None when existing ->
-        failwith @@ "No manga " ^ comic_name ^ "Exist"
+        failwith @@ Printf.sprintf "No comic %s exist" comic_name
     | None ->
         let () =
           match
