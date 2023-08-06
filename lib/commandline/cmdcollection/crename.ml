@@ -140,15 +140,24 @@ let rename_encrypted merge ~key ~old_name ~new_name =
   let _ = Libyomu.Comic.Syomu.encrypt ~key new_syomu () in
   ()
 
+(** [path_to_set path] read the content of the directory [path] in put 
+    its content in a set and remove dot file
+  *)
+let path_to_set path =
+  path |> Sys.readdir |> Array.to_seq |> StringSet.of_seq
+  |> StringSet.filter (fun s -> not @@ String.starts_with ~prefix:"." s)
+
 let rename_normal merge ~old_name ~new_name =
   let ( // ) = Libyomu.App.( // ) in
-  let old_path = Libyomu.App.yomu_share // old_name in
-  let new_path = Libyomu.App.yomu_share // new_name in
+  let old_path = Libyomu.App.yomu_comics // old_name in
+  let new_path = Libyomu.App.yomu_comics // new_name in
   let exist_old = Sys.file_exists old_path && Sys.is_directory old_path in
   let exist_new = Sys.file_exists new_path && Sys.is_directory new_path in
   match (exist_old, exist_new) with
   | true, false ->
-      Sys.rename old_path new_path
+      let () = Sys.rename old_path new_path in
+      let () = Util.FileSys.rmrf old_path () in
+      ()
   | false, (true | false) ->
       raise
       @@ Libyomu.Error.(yomu_error @@ Rename_Error (Comic_not_exist old_name))
@@ -160,12 +169,8 @@ let rename_normal merge ~old_name ~new_name =
                yomu_error @@ Rename_Error (Comic_already_exist new_name)
              )
       | true ->
-          let old_content =
-            old_path |> Sys.readdir |> Array.to_seq |> StringSet.of_seq
-          in
-          let new_content =
-            new_path |> Sys.readdir |> Array.to_seq |> StringSet.of_seq
-          in
+          let old_content = path_to_set old_path in
+          let new_content = path_to_set new_path in
           let conflicting_set = StringSet.inter old_content new_content in
           let () =
             match StringSet.is_empty conflicting_set with
@@ -184,13 +189,21 @@ let rename_normal merge ~old_name ~new_name =
                           )
                    )
             | true ->
-                StringSet.iter
-                  (fun elt ->
-                    let oldpath_comic = old_path // elt in
-                    let newpath_comic = new_path // elt in
-                    Sys.rename oldpath_comic newpath_comic
-                  )
-                  old_content
+                let () =
+                  StringSet.iter
+                    (fun elt ->
+                      let oldpath_comic = old_path // elt in
+                      let newpath_comic = new_path // elt in
+                      let () =
+                        Printf.printf "Merge %s into %s\n%!" oldpath_comic
+                          newpath_comic
+                      in
+                      Sys.rename oldpath_comic newpath_comic
+                    )
+                    old_content
+                in
+                let () = Util.FileSys.rmrf old_path () in
+                ()
           in
           ()
     )
