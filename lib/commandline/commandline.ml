@@ -21,11 +21,12 @@ module Main = struct
   let name = "oyomu"
 
   let version =
-    let s = match Build_info.V1.version () with
-    | None ->
-        "n/a"
-    | Some v ->
-        Build_info.V1.Version.to_string v
+    let s =
+      match Build_info.V1.version () with
+      | None ->
+          "n/a"
+      | Some v ->
+          Build_info.V1.Version.to_string v
     in
     Printf.sprintf "%s-next" s
 

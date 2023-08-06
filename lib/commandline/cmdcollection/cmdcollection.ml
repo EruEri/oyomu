@@ -29,7 +29,7 @@ let man =
 let root_info = Cmd.info name ~doc ~man
 
 let subcommands =
-  [ Add.command; Cread.command; Clist.command; Cdelete.command; Cinit.command ]
+  [ Cadd.command; Cread.command; Clist.command; Cdelete.command; Cinit.command ]
 
 let parse () = Cmd.group root_info subcommands
 let command = parse ()

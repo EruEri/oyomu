@@ -15,5 +15,68 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-let name = "edit"
+(* open Cmdliner
 
+   let name = "edit"
+
+   type t = {
+     next_page : char option;
+     previous_page : char option;
+     goto_page : char option;
+     goto_book : char option;
+   }
+
+   let next_page_term =
+     Arg.(
+       value
+         & opt (some char) None
+         & info ["next-page"] ~doc:"Set the key to be used to go to the next page"
+     )
+
+   let previous_page_term =
+     Arg.(
+       value
+         & opt (some char) None
+         & info ["prev-page"] ~doc:"Set the key to be used to go to the previous page"
+     )
+
+   let goto_page_term =
+     Arg.(
+       value
+         & opt (some char) None
+         & info ["goto-page"] ~doc:"Set the key to be used to go to a specific page"
+     )
+
+   let goto_book_term =
+     Arg.(
+       value
+         & opt (some char) None
+         & info ["goto-book"] ~doc:"Set the key to be used to go to a specific book"
+     )
+
+   let cmd_term runner =
+     let combine next_page previous_page goto_page goto_book =
+       runner @@ {next_page; previous_page; goto_page; goto_book}
+     in
+     Term.(const combine
+       $ next_page_term
+       $ previous_page_term
+       $ goto_page_term
+       $ goto_book_term
+     )
+
+
+   let doc = "Configure $(mname)"
+   let man =  [ `S Manpage.s_description; `P doc ]
+
+   let cmd run =
+     let info = Cmd.info name ~doc ~man in
+     Cmd.v info (cmd_term run)
+
+   let run cmd =
+     let {next_page; previous_page; goto_book; goto_page } = cmd in
+     let keyvals = Libyomu.Init.read_config () in
+
+     ()
+
+   let command = cmd run *)
