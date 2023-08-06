@@ -15,34 +15,68 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-module Main = struct
-  open Cmdliner
+(* open Cmdliner
 
-  let name = "oyomu"
+   let name = "edit"
 
-  let version =
-    let s =
-      match Build_info.V1.version () with
-      | None ->
-          "n/a"
-      | Some v ->
-          Build_info.V1.Version.to_string v
-    in
-    Printf.sprintf "%s-next" s
+   type t = {
+     next_page : char option;
+     previous_page : char option;
+     goto_page : char option;
+     goto_book : char option;
+   }
 
-  let root_doc = "a comic reader"
+   let next_page_term =
+     Arg.(
+       value
+         & opt (some char) None
+         & info ["next-page"] ~doc:"Set the key to be used to go to the next page"
+     )
 
-  let root_man =
-    [
-      `S Manpage.s_description;
-      `P "$(iname) allows to manager and read your comic collection";
-    ]
+   let previous_page_term =
+     Arg.(
+       value
+         & opt (some char) None
+         & info ["prev-page"] ~doc:"Set the key to be used to go to the previous page"
+     )
 
-  let root_info = Cmd.info name ~doc:root_doc ~man:root_man ~version
-  let subcommands = [ Read.command; Cmdcollection.command ]
-  let parse () = Cmd.group root_info subcommands
+   let goto_page_term =
+     Arg.(
+       value
+         & opt (some char) None
+         & info ["goto-page"] ~doc:"Set the key to be used to go to a specific page"
+     )
 
-  let eval () =
-    let () = Libyomu.Ccallback.register_callback () in
-    () |> parse |> Cmd.eval
-end
+   let goto_book_term =
+     Arg.(
+       value
+         & opt (some char) None
+         & info ["goto-book"] ~doc:"Set the key to be used to go to a specific book"
+     )
+
+   let cmd_term runner =
+     let combine next_page previous_page goto_page goto_book =
+       runner @@ {next_page; previous_page; goto_page; goto_book}
+     in
+     Term.(const combine
+       $ next_page_term
+       $ previous_page_term
+       $ goto_page_term
+       $ goto_book_term
+     )
+
+
+   let doc = "Configure $(mname)"
+   let man =  [ `S Manpage.s_description; `P doc ]
+
+   let cmd run =
+     let info = Cmd.info name ~doc ~man in
+     Cmd.v info (cmd_term run)
+
+   let run cmd =
+     let {next_page; previous_page; goto_book; goto_page } = cmd in
+     let keyvals = Libyomu.Init.read_config () in
+
+     ()
+
+   let command = cmd run *)

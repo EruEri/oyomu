@@ -28,6 +28,10 @@ let create_yomu_share () =
 let create_yomu_comics () =
   create_folder ~on_error:(Error.Create_folder App.yomu_comics) App.yomu_comics
 
+(** [create_yomu_config ()] create the folder [ $XDG_CONFIG_HOME/yomu] *)
+let create_yomu_config () =
+  create_folder ~on_error:(Error.Create_folder App.yomu_comics) App.yomu_comics
+
 (** 
   [create_yomu_hidden ()] create the folder [.scomics] in [$XDG_DATA_HOME/share/yomu] so 
   [$XDG_DATA_HOME/share/yomu/.scomics] and the file [.syomurc]
@@ -72,3 +76,29 @@ let check_yomu_hidden () =
         Error App.yomu_hidden_config
   in
   Ok ()
+
+let check_yomu_config () =
+  let ( let* ) = Result.bind in
+  let* () =
+    match Sys.file_exists App.yomu_config with
+    | true ->
+        Ok ()
+    | false ->
+        Error App.yomu_comics
+  in
+  Ok ()
+
+let read_config () =
+  let content =
+    match Sys.file_exists App.yomu_config_file with
+    | true ->
+        Util.Io.content_filename App.yomu_config_file ()
+    | false ->
+        let () = Out_channel.with_open_bin App.yomu_config_file ignore in
+        String.empty
+  in
+  content |> String.split_on_char '\n'
+  |> List.filter_map (fun line ->
+         let splitter = String.split_on_char '=' line in
+         match splitter with [ key; value ] -> Some (key, value) | _ -> None
+     )

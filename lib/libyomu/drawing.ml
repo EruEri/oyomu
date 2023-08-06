@@ -181,15 +181,15 @@ let read_choice () =
   let _ = Unix.read Unix.stdin bytes 0 len in
   let c = Bytes.get bytes 0 in
   match c with
-  | 'j' | 'J' ->
+  | c when c = App.KeyBindingConst.val_previous_page ->
       `Left
-  | 'l' | 'L' ->
+  | c when c = App.KeyBindingConst.val_next_page ->
       `Right
-  | 'q' | 'Q' ->
+  | c when c = App.KeyBindingConst.val_quit ->
       `Quit
-  | 'b' ->
+  | c when c = App.KeyBindingConst.val_goto_book ->
       read_movement ~parser:parse_book_movement ()
-  | 'g' ->
+  | c when c = App.KeyBindingConst.val_goto_page ->
       read_movement ~parser:parser_page_movement ()
   | _ ->
       `Ignore
