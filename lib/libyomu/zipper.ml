@@ -63,6 +63,12 @@ let replace_current alt : 'a t -> 'a t = function
   | _ :: q, rhs ->
       (alt :: q, rhs)
 
+let remove_current : 'a t -> 'a t = function
+  | ([], _) as z ->
+      z
+  | _ :: q, rhs ->
+      (q, rhs)
+
 let status = function
   | lhs, rhs ->
       let l = List.length lhs in

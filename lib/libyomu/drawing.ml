@@ -215,21 +215,21 @@ let read_page comic_name mode ignored index zipper =
       option
 
 let read_item mode (item : ('a, Comic.named_archive) Either.t) =
-  let (Comic.{ pages; name } as c) =
+  let ( let* ) = Option.bind in
+  let* (Comic.{ pages; name } as c) =
     match item with
     | Either.Left comic ->
-        comic
+        Some comic
     | Either.Right { name; archive_path } ->
-        let comic = Comic.CZip.comic_of_zip archive_path in
+        let* comic = Comic.CZip.comic_of_zip archive_path in
         let () = Gc.major () in
         let () = Gc.compact () in
-
-        { comic with name }
+        Some { comic with name }
   in
 
   let z_pages = Zipper.of_list pages in
   let res = Zipper.action 0 (read_page name mode) z_pages in
-  (c, res)
+  Some (c, res)
 
 let read_collection mode config =
   Zipper.action_alt (fun zipper ->
@@ -238,36 +238,42 @@ let read_collection mode config =
       | None ->
           (zipper, `Right)
       | Some either_comic ->
-          let comic, res = read_item mode either_comic in
-          let zipper =
-            match either_comic with
-            | Either.Right _ -> (
-                match config.keep_unzipped with
-                | true ->
-                    Zipper.replace_current (Either.left comic) zipper
-                | false ->
-                    zipper
-              )
-            | Either.Left _ ->
-                zipper
-          in
           let zipper, res =
-            match res with
-            | (`Left | `Quit | `Right) as e ->
-                (zipper, e)
-            | `GotoBook kind ->
-                let n, res =
-                  match kind.Zipper.offset with
-                  | n when n < 0 && not kind.absolute ->
-                      (1, `Right)
-                  | n when n > 0 && not kind.absolute ->
-                      (-1, `Left)
-                  | _ ->
-                      (-1, `Left)
+            match read_item mode either_comic with
+            | None ->
+                (Zipper.remove_current zipper, `Left)
+            | Some (comic, res) ->
+                let zipper =
+                  match either_comic with
+                  | Either.Right _ -> (
+                      match config.keep_unzipped with
+                      | true ->
+                          Zipper.replace_current (Either.left comic) zipper
+                      | false ->
+                          zipper
+                    )
+                  | Either.Left _ ->
+                      zipper
                 in
-                (* Need this offset [n] since the since [res] will also move the zipper by one so we remove one by the movement *)
-                let kind = { kind with offset = kind.offset + n } in
-                let zipper = Zipper.move kind zipper in
+                let zipper, res =
+                  match res with
+                  | (`Left | `Quit | `Right) as e ->
+                      (zipper, e)
+                  | `GotoBook kind ->
+                      let n, res =
+                        match kind.Zipper.offset with
+                        | n when n < 0 && not kind.absolute ->
+                            (1, `Right)
+                        | n when n > 0 && not kind.absolute ->
+                            (-1, `Left)
+                        | _ ->
+                            (-1, `Left)
+                      in
+                      (* Need this offset [n] since the since [res] will also move the zipper by one so we remove one by the movement *)
+                      let kind = { kind with offset = kind.offset + n } in
+                      let zipper = Zipper.move kind zipper in
+                      (zipper, res)
+                in
                 (zipper, res)
           in
           (zipper, res)

@@ -60,7 +60,20 @@ let normal_entries ~comic_only series =
     | true ->
         []
     | false ->
-        List.sort String.compare @@ Array.to_list @@ Sys.readdir path
+        path |> Sys.readdir |> Array.to_list
+        |> List.map (fun s ->
+               let () =
+                 match String.starts_with ~prefix:"." s with
+                 | true -> (
+                     try Util.FileSys.rmrf (Filename.concat path s) ()
+                     with _ -> ()
+                   )
+                 | false ->
+                     ()
+               in
+               s
+           )
+        |> List.sort String.compare
   in
   let ( // ) = Filename.concat in
   let always = series = [] in
