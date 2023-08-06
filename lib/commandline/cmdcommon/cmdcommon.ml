@@ -31,6 +31,17 @@ let check_yomu_initialiaze () =
   | Error _ ->
       raise @@ Libyomu.Error.(yomu_error @@ Yomu_Not_Initialized)
 
+let keep_unzipped_term =
+  let var_info = Cmd.Env.info Libyomu.App.KeyBindingConst.variable_keep_unzip in
+  Arg.(
+    value & flag
+    & info [ "keep-unzipped" ] ~env:var_info
+        ~doc:
+          "Indicate whether unzipped comics should be kept in memory. If set, \
+           unzipped comics won't be unzipped again if read again but cause a \
+           larger memory consumtion"
+  )
+
 let password_prompt = "Enter the master password : "
 
 let make_variable_section variable content =

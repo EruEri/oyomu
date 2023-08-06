@@ -68,7 +68,7 @@ COMMANDS
 
        read [--all=COMIC] [--encrypt] [--pixel=PIXEL_MODE] [OPTION]…
        [<VOL.COMIC>]…
-           Read comics from collecti
+           Read comics from collection
 ````
 
 #### Init

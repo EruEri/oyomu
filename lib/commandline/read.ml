@@ -28,7 +28,11 @@ let pixels_modes =
     ("iterm", CHAFA_PIXEL_MODE_ITERM2);
   ]
 
-type t = { mode : Cbindings.Chafa.pixel_mode; files : string list }
+type t = {
+  mode : Cbindings.Chafa.pixel_mode;
+  keep_unzipped : bool;
+  files : string list;
+}
 
 let file_term =
   let linfo =
@@ -49,8 +53,10 @@ let pixel_term =
   )
 
 let cmd_term run =
-  let combine files mode = run @@ { files; mode } in
-  Term.(const combine $ file_term $ pixel_term)
+  let combine mode keep_unzipped files =
+    run @@ { mode; keep_unzipped; files }
+  in
+  Term.(const combine $ pixel_term $ Cmdcommon.keep_unzipped_term $ file_term)
 
 let cmd_doc = "Read comics"
 
@@ -68,9 +74,10 @@ let archive_of_file file =
   Libyomu.Comic.{ archive_path; name }
 
 let run cmd_read =
-  let { files; mode } = cmd_read in
+  let { files; keep_unzipped; mode } = cmd_read in
+  let config = Libyomu.Drawing.{ keep_unzipped } in
   let files = List.map archive_of_file files in
-  let () = Libyomu.Drawing.read_comics mode files () in
+  let () = Libyomu.Drawing.read_comics ~config mode files () in
   ()
 
 let command = cmd run

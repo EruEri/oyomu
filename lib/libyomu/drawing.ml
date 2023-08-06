@@ -17,6 +17,8 @@
 
 open Cbindings
 
+type drawing_config = { keep_unzipped : bool }
+
 let debug_string content =
   Out_channel.with_open_text "debug" (fun oc -> Printf.fprintf oc "%s\n" content)
 
@@ -229,7 +231,7 @@ let read_item mode (item : ('a, Comic.named_archive) Either.t) =
   let res = Zipper.action 0 (read_page name mode) z_pages in
   (c, res)
 
-let read_collection mode =
+let read_collection mode config =
   Zipper.action_alt (fun zipper ->
       let current_opt = Zipper.top_left zipper in
       match current_opt with
@@ -239,8 +241,13 @@ let read_collection mode =
           let comic, res = read_item mode either_comic in
           let zipper =
             match either_comic with
-            | Either.Right _ ->
-                Zipper.replace_current (Either.left comic) zipper
+            | Either.Right _ -> (
+                match config.keep_unzipped with
+                | true ->
+                    Zipper.replace_current (Either.left comic) zipper
+                | false ->
+                    zipper
+              )
             | Either.Left _ ->
                 zipper
           in
@@ -266,7 +273,8 @@ let read_collection mode =
           (zipper, res)
   )
 
-let read_comics mode (archives : Comic.named_archive list) () =
+let read_comics ~config mode (archives : Comic.named_archive list) () =
+  let () = ignore config in
   let () = Termove.start_window () in
   let () = Termove.hide_cursor () in
   let () = MagickWand.magick_wand_genesis () in
@@ -274,7 +282,7 @@ let read_comics mode (archives : Comic.named_archive list) () =
   let collection = List.map Either.right archives in
   let z_collections = Zipper.of_list collection in
 
-  let _side = read_collection mode z_collections in
+  let _side = read_collection mode config z_collections in
 
   let () = Termove.end_window () in
   let () = Termove.show_cursor () in
