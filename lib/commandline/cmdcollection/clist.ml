@@ -94,19 +94,7 @@ let encrypted_entry ~key ~comic_only series =
 let run cmd_list =
   let { encrypted; comic_only; series } = cmd_list in
   let () = Cmdcommon.check_yomu_initialiaze () in
-  let key_opt =
-    match encrypted with
-    | false ->
-        None
-    | true ->
-        let () = Cmdcommon.check_yomu_hidden () in
-        let key =
-          Option.some
-          @@ Libyomu.Input.ask_password_encrypted
-               ~prompt:Cmdcommon.password_prompt ()
-        in
-        key
-  in
+  let key_opt = Cmdcommon.ask_password_if_encrypted encrypted () in
   let nentries, eentries =
     match key_opt with
     | Some key ->

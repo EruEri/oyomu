@@ -111,19 +111,7 @@ let run cmd_read =
   in
 
   let () = Cmdcommon.check_yomu_initialiaze () in
-  let key_opt =
-    match encrypted with
-    | false ->
-        None
-    | true ->
-        let () = Cmdcommon.check_yomu_hidden () in
-        let key =
-          Option.some
-          @@ Libyomu.Input.ask_password_encrypted
-               ~prompt:Cmdcommon.password_prompt ()
-        in
-        key
-  in
+  let key_opt = Cmdcommon.ask_password_if_encrypted encrypted () in
 
   let files = List.mapi (fun i file -> (i + start_index, file)) files in
 

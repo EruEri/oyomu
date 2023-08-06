@@ -179,19 +179,7 @@ let run cmd =
   let { encrypted; keep_unzipped; all; specifics; pixel_mode } = cmd in
   let config = Libyomu.Drawing.{ keep_unzipped } in
   let () = Cmdcommon.check_yomu_initialiaze () in
-  let key_opt =
-    match encrypted with
-    | false ->
-        None
-    | true ->
-        let () = Cmdcommon.check_yomu_hidden () in
-        let key =
-          Option.some
-          @@ Libyomu.Input.ask_password_encrypted
-               ~prompt:Cmdcommon.password_prompt ()
-        in
-        key
-  in
+  let key_opt = Cmdcommon.ask_password_if_encrypted encrypted () in
   let specifics =
     specifics |> List.filter (fun (_, serie) -> not @@ List.mem serie all)
   in

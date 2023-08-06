@@ -81,6 +81,14 @@ let cmd_term run =
 let doc = "Rename comics"
 let man = [ `S Manpage.s_description; `P doc ]
 
+(** [rename oldpath newpath] rename [oldpath] in [newpath], delete [oldpath] and echo *)
+let rename oldpath newpath =
+  let () = Sys.rename oldpath newpath in
+  let () = Util.FileSys.rmrf oldpath () in
+  let oldname = Filename.basename oldpath in
+  let newname = Filename.basename newpath in
+  Printf.printf "Successfully rename %s => %s\n%!" oldname newname
+
 let merge_yomu ~old_name ~new_name ~oldyomu ~targetyomu syomurc =
   let open Libyomu.Comic in
   let old_content = SItemSet.of_list oldyomu.scomics in
@@ -155,9 +163,7 @@ let rename_normal merge ~old_name ~new_name =
   let exist_new = Sys.file_exists new_path && Sys.is_directory new_path in
   match (exist_old, exist_new) with
   | true, false ->
-      let () = Sys.rename old_path new_path in
-      let () = Util.FileSys.rmrf old_path () in
-      ()
+      rename old_path new_path
   | false, (true | false) ->
       raise
       @@ Libyomu.Error.(yomu_error @@ Rename_Error (Comic_not_exist old_name))
