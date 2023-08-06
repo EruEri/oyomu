@@ -28,7 +28,7 @@ module Main = struct
       | Some v ->
           Build_info.V1.Version.to_string v
     in
-    Printf.sprintf "%s-next" s
+    Printf.sprintf "%s" s
 
   let root_doc = "a comic reader"
 
