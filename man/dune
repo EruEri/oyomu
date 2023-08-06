@@ -95,4 +95,3 @@
 (install
  (section man)
  (files oyomu-collection-decrypt.1))
-

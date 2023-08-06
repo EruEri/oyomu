@@ -102,7 +102,6 @@ let add_normal ~existing ~comic_name indexed_archives =
 
 let run cmd_read =
   let { encrypted; comic; existing; start_index; files } = cmd_read in
-  let () = ignore (comic, existing, start_index, files) in
   let () =
     match start_index with
     | n when n < 0 ->
