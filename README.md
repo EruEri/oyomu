@@ -15,7 +15,7 @@ Currently only the zip archive are handle properly
 
 To read comics, use the ```read``` subcommand
 
-Use the "j" for left and the "l" for right and 'q' for quit
+By default, it uses the "h" for left and the "l" for right and 'q' for quit
 ```
 $ oyomu read --help
 NAME
@@ -33,10 +33,11 @@ ARGUMENTS
 
 OPTIONS
        -p PIXEL_MODE, --pixel=PIXEL_MODE (absent=symbols)
-           pixel mode to use to render the imagesone of 'symbols', 'sixels',
+           pixel mode to use to render the images one of 'symbols', 'sixels',
            'kitty' or 'iterm'
 ```
 
+[Demonstration: MacOS iTerm](https://imgur.com/a/7pRl4j1)
 
 ### Collection
 
@@ -68,7 +69,7 @@ COMMANDS
 
        read [--all=COMIC] [--encrypt] [--pixel=PIXEL_MODE] [OPTION]…
        [<VOL.COMIC>]…
-           Read comics from collecti
+           Read comics from collection
 ````
 
 #### Init
@@ -111,6 +112,3 @@ Oyomu has 2 strategies to store your comic:
   dune build
   dune install
   ```
-
-## Future
-- Maybe add config file to modify the reading key bindings

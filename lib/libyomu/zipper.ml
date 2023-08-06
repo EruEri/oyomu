@@ -63,6 +63,12 @@ let replace_current alt : 'a t -> 'a t = function
   | _ :: q, rhs ->
       (alt :: q, rhs)
 
+let remove_current : 'a t -> 'a t = function
+  | ([], _) as z ->
+      z
+  | _ :: q, rhs ->
+      (q, rhs)
+
 let status = function
   | lhs, rhs ->
       let l = List.length lhs in
@@ -77,6 +83,8 @@ let rec action_alt f zipper =
         action_alt f @@ left new_zipper
     | `Right ->
         action_alt f @@ right new_zipper
+    | `NoAction ->
+        action_alt f new_zipper
     | `Quit ->
         res
   with _ -> res
@@ -85,10 +93,10 @@ let rec action ?(ignored = false) index f zipper =
   let res = f ignored index zipper in
   match res with
   | `Right as r -> (
-      try action (index + 1) f @@ left zipper with _ -> r
+      try action (index - 1) f @@ right zipper with _ -> r
     )
   | `Left as l -> (
-      try action (index - 1) f @@ right zipper with _ -> l
+      try action (index + 1) f @@ left zipper with _ -> l
     )
   | `Ignore ->
       action index ~ignored:true f zipper

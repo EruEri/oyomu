@@ -30,6 +30,7 @@ let pixels_modes =
 
 type t = {
   encrypted : bool;
+  keep_unzipped : bool;
   pixel_mode : Cbindings.Chafa.pixel_mode;
   all : string list;
   specifics : (int * string) list;
@@ -70,10 +71,13 @@ let specifics =
   )
 
 let cmd_term run =
-  let combine encrypted pixel_mode all specifics =
-    run @@ { encrypted; pixel_mode; all; specifics }
+  let combine encrypted keep_unzipped pixel_mode all specifics =
+    run @@ { encrypted; keep_unzipped; pixel_mode; all; specifics }
   in
-  Term.(const combine $ encrypted_term $ pixel_term $ all_term $ specifics)
+  Term.(
+    const combine $ encrypted_term $ Cmdcommon.keep_unzipped_term $ pixel_term
+    $ all_term $ specifics
+  )
 
 let man_example =
   [
@@ -117,6 +121,9 @@ let read_normal all specifics =
            | true ->
                let dir_content = Sys.readdir path in
                let ldir_content = Array.to_list dir_content in
+               let ldir_content =
+                 List.filter_map (Cmdcommon.filter_dotfile ~path) ldir_content
+               in
                let archive_paths =
                  ldir_content
                  |> List.map (fun file ->
@@ -172,21 +179,10 @@ let read_encrypted ~key all specifics =
   narchives @ earchives
 
 let run cmd =
-  let { encrypted; all; specifics; pixel_mode } = cmd in
+  let { encrypted; keep_unzipped; all; specifics; pixel_mode } = cmd in
+  let config = Libyomu.Drawing.{ keep_unzipped } in
   let () = Cmdcommon.check_yomu_initialiaze () in
-  let key_opt =
-    match encrypted with
-    | false ->
-        None
-    | true ->
-        let () = Cmdcommon.check_yomu_hidden () in
-        let key =
-          Option.some
-          @@ Libyomu.Input.ask_password_encrypted
-               ~prompt:Cmdcommon.password_prompt ()
-        in
-        key
-  in
+  let key_opt = Cmdcommon.ask_password_if_encrypted encrypted () in
   let specifics =
     specifics |> List.filter (fun (_, serie) -> not @@ List.mem serie all)
   in
@@ -199,7 +195,7 @@ let run cmd =
     | None ->
         read_normal all specifics
   in
-  let () = Libyomu.Drawing.read_comics pixel_mode archives () in
+  let () = Libyomu.Drawing.read_comics ~config pixel_mode archives () in
   ()
 
 let command = cmd run

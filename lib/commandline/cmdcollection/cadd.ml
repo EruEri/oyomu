@@ -83,7 +83,7 @@ let add_normal ~existing ~comic_name indexed_archives =
     | Some c ->
         c
     | None when existing ->
-        failwith @@ "No manga " ^ comic_name ^ "Exist"
+        failwith @@ Printf.sprintf "No comic %s exist" comic_name
     | None ->
         let () =
           match
@@ -102,7 +102,6 @@ let add_normal ~existing ~comic_name indexed_archives =
 
 let run cmd_read =
   let { encrypted; comic; existing; start_index; files } = cmd_read in
-  let () = ignore (comic, existing, start_index, files) in
   let () =
     match start_index with
     | n when n < 0 ->
@@ -112,19 +111,7 @@ let run cmd_read =
   in
 
   let () = Cmdcommon.check_yomu_initialiaze () in
-  let key_opt =
-    match encrypted with
-    | false ->
-        None
-    | true ->
-        let () = Cmdcommon.check_yomu_hidden () in
-        let key =
-          Option.some
-          @@ Libyomu.Input.ask_password_encrypted
-               ~prompt:Cmdcommon.password_prompt ()
-        in
-        key
-  in
+  let key_opt = Cmdcommon.ask_password_if_encrypted encrypted () in
 
   let files = List.mapi (fun i file -> (i + start_index, file)) files in
 
