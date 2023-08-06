@@ -48,6 +48,7 @@ let check_app_initialized () =
   ()
 
 module KeyBindingConst = struct
+  let yomu_variable_make = Printf.sprintf "YOMU_%s"
   let key_variable_make = Printf.sprintf "YOMU_%s_KEY"
 
   let val_key ~default variable_name =
@@ -56,6 +57,7 @@ module KeyBindingConst = struct
     >>= (fun s -> try Option.some @@ String.get s 0 with _ -> None)
     |> Option.value ~default
 
+  let variable_keep_unzip = yomu_variable_make "KEEP_UNZIPPED"
   let key_variable_next_page = key_variable_make "NEXT_PAGE"
   let key_variable_previous_page = key_variable_make "PREV_PAGE"
   let key_variable_goto_page = key_variable_make "GOTO_PAGE"

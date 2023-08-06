@@ -30,6 +30,7 @@ let pixels_modes =
 
 type t = {
   encrypted : bool;
+  keep_unzipped : bool;
   pixel_mode : Cbindings.Chafa.pixel_mode;
   all : string list;
   specifics : (int * string) list;
@@ -70,10 +71,13 @@ let specifics =
   )
 
 let cmd_term run =
-  let combine encrypted pixel_mode all specifics =
-    run @@ { encrypted; pixel_mode; all; specifics }
+  let combine encrypted keep_unzipped pixel_mode all specifics =
+    run @@ { encrypted; keep_unzipped; pixel_mode; all; specifics }
   in
-  Term.(const combine $ encrypted_term $ pixel_term $ all_term $ specifics)
+  Term.(
+    const combine $ encrypted_term $ Cmdcommon.keep_unzipped_term $ pixel_term
+    $ all_term $ specifics
+  )
 
 let man_example =
   [
@@ -172,7 +176,8 @@ let read_encrypted ~key all specifics =
   narchives @ earchives
 
 let run cmd =
-  let { encrypted; all; specifics; pixel_mode } = cmd in
+  let { encrypted; keep_unzipped; all; specifics; pixel_mode } = cmd in
+  let config = Libyomu.Drawing.{ keep_unzipped } in
   let () = Cmdcommon.check_yomu_initialiaze () in
   let key_opt =
     match encrypted with
@@ -199,7 +204,7 @@ let run cmd =
     | None ->
         read_normal all specifics
   in
-  let () = Libyomu.Drawing.read_comics pixel_mode archives () in
+  let () = Libyomu.Drawing.read_comics ~config pixel_mode archives () in
   ()
 
 let command = cmd run
