@@ -80,13 +80,21 @@ let cmd_term run =
 let doc = "Rename comics"
 let man = [ `S Manpage.s_description; `P doc ]
 
+let show_success ?(merge = false) =
+  Printf.printf "Successfully %s %s => %s\n%!"
+    ( if merge then
+        "merged"
+      else
+        "renamed"
+    )
+
 (** [rename oldpath newpath] rename [oldpath] in [newpath], delete [oldpath] and echo *)
 let rename oldpath newpath =
   let () = Sys.rename oldpath newpath in
   let () = Util.FileSys.rmrf oldpath () in
   let oldname = Filename.basename oldpath in
   let newname = Filename.basename newpath in
-  Printf.printf "Successfully rename %s => %s\n%!" oldname newname
+  show_success oldname newname
 
 let merge_yomu ~old_name ~new_name ~oldyomu ~targetyomu syomurc =
   let open Libyomu.Comic in
@@ -111,6 +119,7 @@ let merge_yomu ~old_name ~new_name ~oldyomu ~targetyomu syomurc =
                   )
            )
     | true ->
+        let () = show_success ~merge:true old_name new_name in
         Libyomu.Comic.Syomu.rename_serie old_name new_name syomurc
   in
   scomics
@@ -134,6 +143,7 @@ let rename_encrypted merge ~key ~old_name ~new_name =
   let new_syomu =
     match new_series_syomu.scomics with
     | [] ->
+        let () = show_success old_name new_name in
         Libyomu.Comic.Syomu.rename_serie old_name new_name syomurc
     | _ :: _ when not merge ->
         raise

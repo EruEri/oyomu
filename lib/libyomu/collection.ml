@@ -96,9 +96,8 @@ module Encrypted = struct
 
   (*  *)
 
-  let add_encrypted ~key ~existing ~comic_name index comic_archive =
+  let add_encrypted ~key ~existing ~comic_name index comic_archive syomurc =
     let ( // ) = App.( // ) in
-    let syomurc = Comic.Syomu.decrypt ~key () in
     let () =
       match existing with
       | true ->
@@ -123,19 +122,19 @@ module Encrypted = struct
       Encryption.encrypt ~where:content_outfile ~key ~iv:item.iv content ()
     in
     let syomurc = Comic.Syomu.add item syomurc in
-    let () =
-      Comic.Syomu.save_encrypt ~where:App.hidden_config_name ~key syomurc ()
-    in
-    ()
+    syomurc
 
   let add_multiples ~key ~existing ~comic_name indexed_archives =
-    let () =
-      List.iter
-        (fun (index, archive) ->
-          add_encrypted ~key ~comic_name ~existing index archive
-        )
-        indexed_archives
+    let syomurc = Comic.Syomu.decrypt ~key () in
+    let syomurc =
+      indexed_archives
+      |> List.fold_left
+           (fun syomurc (index, archive) ->
+             add_encrypted ~key ~comic_name ~existing index archive syomurc
+           )
+           syomurc
     in
+    let _ = Comic.Syomu.encrypt ~key syomurc () in
     ()
 end
 

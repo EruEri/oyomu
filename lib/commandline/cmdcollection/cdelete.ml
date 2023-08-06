@@ -82,13 +82,16 @@ let cmd run =
   Cmd.v info (cmd_term run)
 
 (** Return *)
-let rmrf_safe ?message path =
+let rmrf_safe ?on_success ?message path =
   match Util.FileSys.rmrf path () with
   | () ->
+      let () = Option.iter print_string on_success in
       Ok ()
   | exception _ ->
       let () = Option.iter print_string message in
       Error ()
+
+let output_fmt = Printf.sprintf "Successfully deleted: Vol-%u %s\n%!"
 
 let delete_normal all specifics =
   let ( // ) = Libyomu.App.( // ) in
@@ -118,7 +121,9 @@ let delete_normal all specifics =
                      let error_message =
                        Printf.sprintf "No file: %s\n%!" comic_path
                      in
-                     Result.is_ok @@ rmrf_safe ~message:error_message comic_path
+                     let on_success = output_fmt index serie in
+                     Result.is_ok
+                     @@ rmrf_safe ~on_success ~message:error_message comic_path
                  | None | Some _ ->
                      false
              )
@@ -165,7 +170,8 @@ let delete_encrypted ~key all specifics =
          // sitem.Libyomu.Comic.encrypted_file_name
        in
        let message = Printf.sprintf "Cannot delete file: %s\n%!" path in
-       let _ = rmrf_safe ~message path in
+       let on_success = output_fmt sitem.volume sitem.serie in
+       let _ = rmrf_safe ~on_success ~message path in
        ()
   in
   let () = delete_files exludes in

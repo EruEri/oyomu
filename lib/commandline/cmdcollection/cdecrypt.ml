@@ -21,6 +21,7 @@ let name = "decrypt"
 
 type t = {
   outdir : string option;
+  quiet : bool;
   all : string list;
   specifics : (int * string) list;
 }
@@ -31,6 +32,13 @@ let outdir_term =
     & opt (some dir) None
     & info [ "d"; "output-dir" ] ~docv:"<OUTPUT_DIR>"
         ~doc:"Output directory of decrypted comics"
+  )
+
+let quiet_term =
+  Arg.(
+    value & flag
+    & info [ "q"; "quiet" ]
+        ~doc:"Don't echo comic name when successfully decrypted"
   )
 
 let all_term =
@@ -51,8 +59,10 @@ let specifics =
   )
 
 let cmd_term run =
-  let combine outdir all specifics = run @@ { outdir; all; specifics } in
-  Term.(const combine $ outdir_term $ all_term $ specifics)
+  let combine outdir quiet all specifics =
+    run @@ { outdir; quiet; all; specifics }
+  in
+  Term.(const combine $ outdir_term $ quiet_term $ all_term $ specifics)
 
 let doc = "Decrypt encrypted comics"
 
@@ -70,7 +80,7 @@ let cmd run =
 let print_error message (sitem : Libyomu.Comic.syomu_item) =
   Printf.eprintf "Error: Vol-%u, %s:\n   %s\n" sitem.volume sitem.serie message
 
-let decrypt ~outdir ~key all specifics =
+let decrypt ~quiet ~outdir ~key all specifics =
   let syomurc = Libyomu.Comic.Syomu.decrypt ~key () in
   let filtered = Libyomu.Comic.Syomu.filter_series all syomurc in
   let fspecifis = Libyomu.Comic.Syomu.filter_vseries specifics syomurc in
@@ -99,9 +109,19 @@ let decrypt ~outdir ~key all specifics =
              in
              let outpath = outdir // outname in
              try
-               Out_channel.with_open_bin outpath (fun oc ->
-                   output_string oc data
-               )
+               let () =
+                 Out_channel.with_open_bin outpath (fun oc ->
+                     output_string oc data
+                 )
+               in
+               let () =
+                 match quiet with
+                 | true ->
+                     ()
+                 | false ->
+                     Printf.printf "Successfully decrypted : %s\n%!" outname
+               in
+               ()
              with _ ->
                sitem
                |> print_error
@@ -113,7 +133,7 @@ let decrypt ~outdir ~key all specifics =
   ()
 
 let run cmd =
-  let { outdir; all; specifics } = cmd in
+  let { outdir; quiet; all; specifics } = cmd in
   let () = Cmdcommon.check_yomu_initialiaze () in
   let () = Cmdcommon.check_yomu_hidden () in
   let key =
@@ -123,7 +143,7 @@ let run cmd =
     specifics |> List.filter (fun (_, serie) -> not @@ List.mem serie all)
   in
   let outdir = Option.value ~default:(Sys.getcwd ()) outdir in
-  let () = decrypt ~outdir ~key all specifics in
+  let () = decrypt ~quiet ~outdir ~key all specifics in
   ()
 
 let command = cmd run
