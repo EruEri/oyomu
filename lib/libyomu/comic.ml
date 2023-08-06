@@ -106,6 +106,19 @@ module Syomu = struct
       scomics = syomurc.scomics |> List.filter (fun s -> List.mem s.serie series);
     }
 
+  let rename_serie oldname newname syomurc =
+    {
+      scomics =
+        syomurc.scomics
+        |> List.map (fun s ->
+               match s.serie = oldname with
+               | true ->
+                   { s with serie = newname }
+               | false ->
+                   s
+           );
+    }
+
   let filter_vseries vsereis syomurc =
     let scomics =
       syomurc.scomics

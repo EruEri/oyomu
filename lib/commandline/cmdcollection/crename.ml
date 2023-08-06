@@ -25,6 +25,12 @@ module StringSet = Set.Make (struct
     Filename.remove_extension lhs <=> Filename.remove_extension rhs
 end)
 
+module SItemSet = Set.Make (struct
+  type t = Libyomu.Comic.syomu_item
+
+  let compare (lhs : t) (rhs : t) = compare lhs.volume rhs.volume
+end)
+
 let name = "rename"
 
 type t = {
@@ -75,6 +81,65 @@ let cmd_term run =
 let doc = "Rename comics"
 let man = [ `S Manpage.s_description; `P doc ]
 
+let merge_yomu ~old_name ~new_name ~oldyomu ~targetyomu syomurc =
+  let open Libyomu.Comic in
+  let old_content = SItemSet.of_list oldyomu.scomics in
+  let new_content = SItemSet.of_list targetyomu.scomics in
+  let conflicting_set = SItemSet.inter old_content new_content in
+  let scomics =
+    match SItemSet.is_empty conflicting_set with
+    | false ->
+        let conflits =
+          conflicting_set |> SItemSet.elements
+          |> List.map (fun { serie; volume; _ } ->
+                 Printf.sprintf "%s Vol-%u" serie volume
+             )
+        in
+        raise
+        @@ Libyomu.Error.(
+             yomu_error
+             @@ Rename_Error
+                  (Complicting_volume
+                     { oldname = old_name; newname = new_name; conflits }
+                  )
+           )
+    | true ->
+        Libyomu.Comic.Syomu.rename_serie old_name new_name syomurc
+  in
+  scomics
+
+let rename_encrypted merge ~key ~old_name ~new_name =
+  let syomurc = Libyomu.Comic.Syomu.decrypt ~key () in
+  let old_series_syomu =
+    Libyomu.Comic.Syomu.filter_series [ old_name ] syomurc
+  in
+  let () =
+    match old_series_syomu.scomics with
+    | [] ->
+        raise
+        @@ Libyomu.Error.(yomu_error @@ Rename_Error (Comic_not_exist old_name))
+    | _ :: _ ->
+        ()
+  in
+  let new_series_syomu =
+    Libyomu.Comic.Syomu.filter_series [ new_name ] syomurc
+  in
+  let new_syomu =
+    match new_series_syomu.scomics with
+    | [] ->
+        Libyomu.Comic.Syomu.rename_serie old_name new_name syomurc
+    | _ :: _ when not merge ->
+        raise
+        @@ Libyomu.Error.(
+             yomu_error @@ Rename_Error (Comic_already_exist new_name)
+           )
+    | _ :: _ ->
+        merge_yomu ~old_name ~new_name ~oldyomu:old_series_syomu
+          ~targetyomu:new_series_syomu syomurc
+  in
+  let _ = Libyomu.Comic.Syomu.encrypt ~key new_syomu () in
+  ()
+
 let rename_normal merge ~old_name ~new_name =
   let ( // ) = Libyomu.App.( // ) in
   let old_path = Libyomu.App.yomu_share // old_name in
@@ -102,7 +167,7 @@ let rename_normal merge ~old_name ~new_name =
             new_path |> Sys.readdir |> Array.to_seq |> StringSet.of_seq
           in
           let conflicting_set = StringSet.inter old_content new_content in
-          let _ =
+          let () =
             match StringSet.is_empty conflicting_set with
             | false ->
                 let conflits = StringSet.elements conflicting_set in
@@ -155,8 +220,7 @@ let run cmd =
     | None ->
         rename_normal merge ~old_name ~new_name
     | Some key ->
-        let () = ignore key in
-        failwith "TODO encyrpyed rename"
+        rename_encrypted merge ~key ~old_name ~new_name
   in
   ()
 
