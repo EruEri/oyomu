@@ -1,0 +1,129 @@
+(**********************************************************************************************)
+(*                                                                                            *)
+(* This file is part of Yomu: A comic reader                                                  *)
+(* Copyright (C) 2023 Yves Ndiaye                                                             *)
+(*                                                                                            *)
+(* Yomu is free software: you can redistribute it and/or modify it under the terms            *)
+(* of the GNU General Public License as published by the Free Software Foundation,            *)
+(* either version 3 of the License, or (at your option) any later version.                    *)
+(*                                                                                            *)
+(* Yomu is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;          *)
+(* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR           *)
+(* PURPOSE.  See the GNU General Public License for more details.                             *)
+(* You should have received a copy of the GNU General Public License along with Yomu.         *)
+(* If not, see <http://www.gnu.org/licenses/>.                                                *)
+(*                                                                                            *)
+(**********************************************************************************************)
+
+open Cmdliner
+
+let name = "decrypt"
+
+type t = {
+  outdir : string option;
+  all : string list;
+  specifics : (int * string) list;
+}
+
+let outdir_term =
+  Arg.(
+    value
+    & opt (some dir) None
+    & info [ "d"; "output-dir" ] ~docv:"<OUTPUT_DIR>"
+        ~doc:"Output directory of decrypted comics"
+  )
+
+let all_term =
+  Arg.(
+    value
+    & opt (list string) []
+    & info [ "a"; "all" ] ~docv:"COMIC"
+        ~doc:
+          "A separated list of all the comic where all the volumes should be \
+           selected"
+  )
+
+let specifics =
+  Arg.(
+    value
+    & pos_all (t2 ~sep:'.' int string) []
+    & info [] ~docv:"<VOL.COMIC>" ~doc:"Select for each comic its volume"
+  )
+
+let cmd_term run =
+  let combine outdir all specifics = run @@ { outdir; all; specifics } in
+  Term.(const combine $ outdir_term $ all_term $ specifics)
+
+let doc = "Decrypt encrypted comics"
+
+let man =
+  [
+    `S Manpage.s_description;
+    `P doc;
+    `P "$(mname) should have been initialized with the $(mname)-init command";
+  ]
+
+let cmd run =
+  let info = Cmd.info name ~doc ~man in
+  Cmd.v info (cmd_term run)
+
+let print_error message (sitem : Libyomu.Comic.syomu_item) =
+  Printf.eprintf "Error: Vol-%u, %s:\n   %s\n" sitem.volume sitem.serie message
+
+let decrypt ~outdir ~key all specifics =
+  let syomurc = Libyomu.Comic.Syomu.decrypt ~key () in
+  let filtered = Libyomu.Comic.Syomu.filter_series all syomurc in
+  let fspecifis = Libyomu.Comic.Syomu.filter_vseries specifics syomurc in
+  let syomurc = Libyomu.Comic.Syomu.union filtered fspecifis in
+  let () =
+    syomurc.scomics
+    |> List.iter
+       @@ fun sitem ->
+       let open Libyomu.Comic in
+       let ( // ) = Libyomu.App.( // ) in
+       let encrypted_path =
+         Libyomu.App.yomu_hidden_comics // sitem.encrypted_file_name
+       in
+       let () =
+         match
+           Libyomu.Encryption.decrpty_file ~key ~iv:sitem.iv encrypted_path ()
+         with
+         | Error exn ->
+             let printer = Printexc.to_string exn in
+             print_error printer sitem
+         | Ok None ->
+             print_error "cannot decrypt" sitem
+         | Ok (Some data) -> (
+             let outname =
+               Printf.sprintf "%s_Vol-%u.cbz" sitem.serie sitem.volume
+             in
+             let outpath = outdir // outname in
+             try
+               Out_channel.with_open_bin outpath (fun oc ->
+                   output_string oc data
+               )
+             with _ ->
+               sitem
+               |> print_error
+                  @@ Printf.sprintf "Cannot write at path: %s" outpath
+           )
+       in
+       ()
+  in
+  ()
+
+let run cmd =
+  let { outdir; all; specifics } = cmd in
+  let () = Cmdcommon.check_yomu_initialiaze () in
+  let () = Cmdcommon.check_yomu_hidden () in
+  let key =
+    Libyomu.Input.ask_password_encrypted ~prompt:Cmdcommon.password_prompt ()
+  in
+  let specifics =
+    specifics |> List.filter (fun (_, serie) -> not @@ List.mem serie all)
+  in
+  let outdir = Option.value ~default:(Sys.getcwd ()) outdir in
+  let () = decrypt ~outdir ~key all specifics in
+  ()
+
+let command = cmd run
