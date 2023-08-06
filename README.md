@@ -37,6 +37,7 @@ OPTIONS
            'kitty' or 'iterm'
 ```
 
+[Demonstration: MacOS iTerm](https://imgur.com/a/7pRl4j1)
 
 ### Collection
 

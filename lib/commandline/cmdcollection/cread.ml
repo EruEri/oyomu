@@ -121,6 +121,9 @@ let read_normal all specifics =
            | true ->
                let dir_content = Sys.readdir path in
                let ldir_content = Array.to_list dir_content in
+               let ldir_content =
+                 List.filter_map (Cmdcommon.filter_dotfile ~path) ldir_content
+               in
                let archive_paths =
                  ldir_content
                  |> List.map (fun file ->
@@ -179,19 +182,7 @@ let run cmd =
   let { encrypted; keep_unzipped; all; specifics; pixel_mode } = cmd in
   let config = Libyomu.Drawing.{ keep_unzipped } in
   let () = Cmdcommon.check_yomu_initialiaze () in
-  let key_opt =
-    match encrypted with
-    | false ->
-        None
-    | true ->
-        let () = Cmdcommon.check_yomu_hidden () in
-        let key =
-          Option.some
-          @@ Libyomu.Input.ask_password_encrypted
-               ~prompt:Cmdcommon.password_prompt ()
-        in
-        key
-  in
+  let key_opt = Cmdcommon.ask_password_if_encrypted encrypted () in
   let specifics =
     specifics |> List.filter (fun (_, serie) -> not @@ List.mem serie all)
   in

@@ -42,7 +42,29 @@ let keep_unzipped_term =
            larger memory consumtion"
   )
 
+let filter_dotfile ~path s =
+  match String.starts_with ~prefix:"." s with
+  | true ->
+      let () =
+        try Util.FileSys.rmrf (Filename.concat path s) () with _ -> ()
+      in
+      None
+  | false ->
+      Some s
+
 let password_prompt = "Enter the master password : "
+
+let ask_password_if_encrypted encrypted () =
+  match encrypted with
+  | false ->
+      None
+  | true ->
+      let () = check_yomu_hidden () in
+      let key =
+        Option.some
+        @@ Libyomu.Input.ask_password_encrypted ~prompt:password_prompt ()
+      in
+      key
 
 let make_variable_section variable content =
   let variable = Printf.sprintf "$(b,%s)" variable in

@@ -23,3 +23,4 @@ module Drawing = Drawing
 module Collection = Collection
 module Init = Initialization
 module Input = Input
+module Encryption = Encryption

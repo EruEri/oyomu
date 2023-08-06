@@ -21,6 +21,15 @@ type init_error =
   | Create_file of string
   | EncryptionError of string
 
+type rename_error =
+  | Comic_not_exist of string
+  | Comic_already_exist of string
+  | Complicting_volume of {
+      oldname : string;
+      newname : string;
+      conflits : string list;
+    }
+
 type error =
   | No_Option_choosen
   | No_file_to_decrypt
@@ -31,6 +40,7 @@ type error =
   | Missing_file of { true_name : string; encrypted_name : string }
   | Missing_init_file of string
   | Init_Error of init_error
+  | Rename_Error of rename_error
   | Non_existing_group of string list
 
 let string_of_init_error = function
@@ -43,10 +53,21 @@ let string_of_init_error = function
   | EncryptionError path ->
       Printf.sprintf "Unable to encrypt file : %s" path
 
+let string_of_rename_error = function
+  | Comic_not_exist s ->
+      Printf.sprintf "Comic \"%s\" doesn't exist" s
+  | Comic_already_exist s ->
+      Printf.sprintf "Comic \"%s\" already exists" s
+  | Complicting_volume { oldname; newname; conflits } ->
+      Printf.sprintf
+        "Cannot merge %s into %s since the following volume conflit:\n\t-%s"
+        oldname newname
+      @@ String.concat "\n\t-" conflits
+
 let string_of_error = function
   | Yomu_Not_Initialized ->
       Printf.sprintf
-        "\".oyomu\" directory doesn't exist. Use hisoka init to initialize"
+        "\"yomu\" directory doesn't exist. Use oyomu init to initialize"
   | No_Option_choosen ->
       "Operation Aborted"
   | Missing_init_file file ->
@@ -64,6 +85,8 @@ let string_of_error = function
         encrypted_name true_name
   | Init_Error init ->
       string_of_init_error init
+  | Rename_Error ri ->
+      string_of_rename_error ri
   | Non_existing_group groups ->
       let s, does =
         match groups with [] | _ :: [] -> ("", "doesn't") | _ -> ("s", "don't")

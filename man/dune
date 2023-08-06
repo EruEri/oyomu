@@ -86,3 +86,21 @@
 (install
  (section man)
  (files oyomu-collection-read.1))
+
+(rule
+ (with-stdout-to
+  oyomu-collection-decrypt.1
+  (run %{bin:oyomu} collection decrypt --help=groff)))
+
+(install
+ (section man)
+ (files oyomu-collection-decrypt.1))
+
+(rule
+ (with-stdout-to
+  oyomu-collection-rename.1
+  (run %{bin:oyomu} collection rename --help=groff)))
+
+(install
+ (section man)
+ (files oyomu-collection-rename.1))
