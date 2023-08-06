@@ -61,18 +61,7 @@ let normal_entries ~comic_only series =
         []
     | false ->
         path |> Sys.readdir |> Array.to_list
-        |> List.map (fun s ->
-               let () =
-                 match String.starts_with ~prefix:"." s with
-                 | true -> (
-                     try Util.FileSys.rmrf (Filename.concat path s) ()
-                     with _ -> ()
-                   )
-                 | false ->
-                     ()
-               in
-               s
-           )
+        |> List.filter_map (Cmdcommon.filter_dotfile ~path)
         |> List.sort String.compare
   in
   let ( // ) = Filename.concat in

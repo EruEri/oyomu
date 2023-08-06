@@ -51,8 +51,7 @@ let merge_term =
 
 let encrypted_term =
   Arg.(
-    value & flag
-    & info [ "e"; "encrypt" ] ~doc:"Look also in the encrypted comics"
+    value & flag & info [ "e"; "encrypt" ] ~doc:"Rename encrypted comic serie"
   )
 
 let old_name_term =

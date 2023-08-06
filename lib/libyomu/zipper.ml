@@ -83,6 +83,8 @@ let rec action_alt f zipper =
         action_alt f @@ left new_zipper
     | `Right ->
         action_alt f @@ right new_zipper
+    | `NoAction ->
+        action_alt f new_zipper
     | `Quit ->
         res
   with _ -> res
@@ -91,10 +93,10 @@ let rec action ?(ignored = false) index f zipper =
   let res = f ignored index zipper in
   match res with
   | `Right as r -> (
-      try action (index + 1) f @@ left zipper with _ -> r
+      try action (index - 1) f @@ right zipper with _ -> r
     )
   | `Left as l -> (
-      try action (index - 1) f @@ right zipper with _ -> l
+      try action (index + 1) f @@ left zipper with _ -> l
     )
   | `Ignore ->
       action index ~ignored:true f zipper

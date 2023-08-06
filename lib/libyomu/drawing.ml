@@ -184,9 +184,9 @@ let read_choice () =
   let c = Bytes.get bytes 0 in
   match c with
   | c when c = App.KeyBindingConst.val_previous_page ->
-      `Left
-  | c when c = App.KeyBindingConst.val_next_page ->
       `Right
+  | c when c = App.KeyBindingConst.val_next_page ->
+      `Left
   | c when c = App.KeyBindingConst.val_quit ->
       `Quit
   | c when c = App.KeyBindingConst.val_goto_book ->
@@ -201,7 +201,7 @@ let read_page comic_name mode ignored index zipper =
   let (page : Comic.page option) = Zipper.top_left zipper in
   match page with
   | None ->
-      `Right
+      `Left
   | Some page ->
       let () =
         match ignored with
@@ -236,12 +236,12 @@ let read_collection mode config =
       let current_opt = Zipper.top_left zipper in
       match current_opt with
       | None ->
-          (zipper, `Right)
+          (zipper, `Left)
       | Some either_comic ->
           let zipper, res =
             match read_item mode either_comic with
             | None ->
-                (Zipper.remove_current zipper, `Left)
+                (Zipper.remove_current zipper, `NoAction)
             | Some (comic, res) ->
                 let zipper =
                   match either_comic with
@@ -267,7 +267,7 @@ let read_collection mode config =
                         | n when n > 0 && not kind.absolute ->
                             (-1, `Left)
                         | _ ->
-                            (-1, `Left)
+                            (0, `NoAction)
                       in
                       (* Need this offset [n] since the since [res] will also move the zipper by one so we remove one by the movement *)
                       let kind = { kind with offset = kind.offset + n } in
@@ -280,11 +280,11 @@ let read_collection mode config =
   )
 
 let read_comics ~config mode (archives : Comic.named_archive list) () =
-  let () = ignore config in
   let () = Termove.start_window () in
   let () = Termove.hide_cursor () in
   let () = MagickWand.magick_wand_genesis () in
 
+  (* let () = archives |> List.map (fun s -> s.Comic.archive_path) |> String.concat "\n" |> debug_string in *)
   let collection = List.map Either.right archives in
   let z_collections = Zipper.of_list collection in
 

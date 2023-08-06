@@ -121,6 +121,9 @@ let read_normal all specifics =
            | true ->
                let dir_content = Sys.readdir path in
                let ldir_content = Array.to_list dir_content in
+               let ldir_content =
+                 List.filter_map (Cmdcommon.filter_dotfile ~path) ldir_content
+               in
                let archive_paths =
                  ldir_content
                  |> List.map (fun file ->
