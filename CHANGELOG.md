@@ -1,8 +1,8 @@
 # CHANGELOG
 
 # [Unreleased]
-- [Add option to read commands for unzip keep strategy]()
-- [Use environment variable to change keybinding ](#1)
+- [Add option to read commands for unzip keep strategy](https://github.com/EruEri/oyomu/pull/2)
+- [Use environment variable to change keybinding ](https://github.com/EruEri/oyomu/pull/1)
 
 # 0.1.0
 - Inilial release
