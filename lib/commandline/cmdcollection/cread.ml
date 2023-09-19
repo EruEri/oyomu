@@ -18,7 +18,7 @@
 open Cmdliner
 
 let name = "read"
-let pixels_modes = Libyomu.Pixel.pixels_modes
+let pixels_modes = Cmdcommon.pixels_modes
 
 type t = {
   encrypted : bool;
