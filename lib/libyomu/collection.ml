@@ -58,7 +58,7 @@ module Normal = struct
           raise
           @@ Error.(
                yomu_error
-               @@ Volume_already_existing { comic = comic_name; volume = index }
+               @@ VolumeAlreadyExisting { comic = comic_name; volume = index }
              )
     in
     ()

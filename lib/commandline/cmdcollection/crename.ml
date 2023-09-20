@@ -113,8 +113,8 @@ let merge_yomu ~old_name ~new_name ~oldyomu ~targetyomu syomurc =
         raise
         @@ Libyomu.Error.(
              yomu_error
-             @@ Rename_Error
-                  (Complicting_volume
+             @@ RenameError
+                  (ConflictingVolume
                      { oldname = old_name; newname = new_name; conflits }
                   )
            )
@@ -133,7 +133,7 @@ let rename_encrypted merge ~key ~old_name ~new_name =
     match old_series_syomu.scomics with
     | [] ->
         raise
-        @@ Libyomu.Error.(yomu_error @@ Rename_Error (Comic_not_exist old_name))
+        @@ Libyomu.Error.(yomu_error @@ RenameError (ComicNotExist old_name))
     | _ :: _ ->
         ()
   in
@@ -147,9 +147,7 @@ let rename_encrypted merge ~key ~old_name ~new_name =
         Libyomu.Syomu.rename_serie old_name new_name syomurc
     | _ :: _ when not merge ->
         raise
-        @@ Libyomu.Error.(
-             yomu_error @@ Rename_Error (Comic_already_exist new_name)
-           )
+        @@ Libyomu.Error.(yomu_error @@ RenameError (ComicAlreadyExist new_name))
     | _ :: _ ->
         merge_yomu ~old_name ~new_name ~oldyomu:old_series_syomu
           ~targetyomu:new_series_syomu syomurc
@@ -174,14 +172,13 @@ let rename_normal merge ~old_name ~new_name =
   | true, false ->
       rename old_path new_path
   | false, (true | false) ->
-      raise
-      @@ Libyomu.Error.(yomu_error @@ Rename_Error (Comic_not_exist old_name))
+      raise @@ Libyomu.Error.(yomu_error @@ RenameError (ComicNotExist old_name))
   | true, true -> (
       match merge with
       | false ->
           raise
           @@ Libyomu.Error.(
-               yomu_error @@ Rename_Error (Comic_already_exist new_name)
+               yomu_error @@ RenameError (ComicAlreadyExist new_name)
              )
       | true ->
           let old_content = path_to_set old_path in
@@ -194,8 +191,8 @@ let rename_normal merge ~old_name ~new_name =
                 raise
                 @@ Libyomu.Error.(
                      yomu_error
-                     @@ Rename_Error
-                          (Complicting_volume
+                     @@ RenameError
+                          (ConflictingVolume
                              {
                                oldname = old_name;
                                newname = new_name;

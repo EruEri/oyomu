@@ -16,82 +16,106 @@
 (**********************************************************************************************)
 
 type init_error =
-  | App_folder_already_exist of string
-  | Create_folder of string
-  | Create_file of string
+  | AppFolderAlreadyExist of string
+  | CreateFolder of string
+  | CreateFile of string
   | EncryptionError of string
 
 type rename_error =
-  | Comic_not_exist of string
-  | Comic_already_exist of string
-  | Complicting_volume of {
+  | ComicNotExist of string
+  | ComicAlreadyExist of string
+  | ConflictingVolume of {
       oldname : string;
       newname : string;
       conflits : string list;
     }
 
+type epub_error =
+  | UnknownError of (int * int)
+  | TooMuchValueForTag of { tag : string }
+  | MissingMendatoryKey of { section : string; key : string }
+  | MissingAttributes of { attribut : string }
+  | WrongExpectedTag of string
+
 type error =
-  | No_Option_choosen
-  | No_file_to_decrypt
-  | Yomu_Not_Initialized
+  | NoOptionChoosen
+  | NoFileToDecrypt
+  | YomuNotInitialized
   | YomuCreateConfigError
   | DecryptionError of string
-  | Already_Existing_name of string
-  | Volume_already_existing of { comic : string; volume : int }
-  | Missing_file of { true_name : string; encrypted_name : string }
-  | Missing_init_file of string
-  | Init_Error of init_error
-  | Rename_Error of rename_error
-  | Non_existing_group of string list
+  | AlreadyExistingName of string
+  | VolumeAlreadyExisting of { comic : string; volume : int }
+  | MissingFile of { true_name : string; encrypted_name : string }
+  | MissingInitFile of string
+  | InitError of init_error
+  | RenameError of rename_error
+  | EpubError of epub_error
+  | NonExistingGroup of string list
 
 let string_of_init_error = function
-  | App_folder_already_exist path ->
+  | AppFolderAlreadyExist path ->
       Printf.sprintf "\"%s\" directory already exists" path
-  | Create_folder path ->
+  | CreateFolder path ->
       Printf.sprintf "Unable to create directory : %s" path
-  | Create_file path ->
+  | CreateFile path ->
       Printf.sprintf "Unable to create file : %s" path
   | EncryptionError path ->
       Printf.sprintf "Unable to encrypt file : %s" path
 
 let string_of_rename_error = function
-  | Comic_not_exist s ->
+  | ComicNotExist s ->
       Printf.sprintf "Comic \"%s\" doesn't exist" s
-  | Comic_already_exist s ->
+  | ComicAlreadyExist s ->
       Printf.sprintf "Comic \"%s\" already exists" s
-  | Complicting_volume { oldname; newname; conflits } ->
+  | ConflictingVolume { oldname; newname; conflits } ->
       Printf.sprintf
         "Cannot merge %s into %s since the following volume conflit:\n\t-%s"
         oldname newname
       @@ String.concat "\n\t-" conflits
 
+let string_of_epub_error =
+  let open Printf in
+  function
+  | UnknownError (i, o) ->
+      Printf.sprintf "Loc error %u %u" i o
+  | MissingMendatoryKey { section; key } ->
+      sprintf "\"%s\" : missing mendatory key : \"%s\"" section key
+  | TooMuchValueForTag { tag } ->
+      sprintf "Too Much Value For Tag : \"%s\"" tag
+  | MissingAttributes { attribut } ->
+      sprintf "Missing attribut : \"%s\"" attribut
+  | WrongExpectedTag s ->
+      sprintf "Wrong expected tag : \"%s\"" s
+
 let string_of_error = function
-  | Yomu_Not_Initialized ->
+  | YomuNotInitialized ->
       Printf.sprintf
         "\"yomu\" directory doesn't exist. Use oyomu init to initialize"
   | YomuCreateConfigError ->
-      Printf.sprintf "Unable to create/read the file : %s"
-      @@ App.yomu_config_file
-  | No_Option_choosen ->
+    Printf.sprintf "Unable to create/read the file : %s"
+    @@ App.yomu_config_file
+  | NoOptionChoosen ->
       "Operation Aborted"
-  | Missing_init_file file ->
+  | MissingInitFile file ->
       Printf.sprintf "The file \"%s\" is missing" file
-  | No_file_to_decrypt ->
+  | NoFileToDecrypt ->
       Printf.sprintf "No File to decrypt"
-  | Volume_already_existing { comic; volume } ->
+  | VolumeAlreadyExisting { comic; volume } ->
       Printf.sprintf "Comic \"%s\": the volume %u already exists" comic volume
   | DecryptionError file ->
       Printf.sprintf "decrptytion error : %s" file
-  | Already_Existing_name filename ->
+  | AlreadyExistingName filename ->
       Printf.sprintf "Filename : \"%s\" is already in hisoka" filename
-  | Missing_file { true_name; encrypted_name } ->
+  | MissingFile { true_name; encrypted_name } ->
       Printf.sprintf "Filename: \"%s\" is missing: This file encrypted: \"%s\""
         encrypted_name true_name
-  | Init_Error init ->
+  | InitError init ->
       string_of_init_error init
-  | Rename_Error ri ->
+  | RenameError ri ->
       string_of_rename_error ri
-  | Non_existing_group groups ->
+  | EpubError e ->
+      string_of_epub_error e
+  | NonExistingGroup groups ->
       let s, does =
         match groups with [] | _ :: [] -> ("", "doesn't") | _ -> ("s", "don't")
       in
@@ -101,6 +125,7 @@ let string_of_error = function
 exception YomuError of error
 
 let yomu_error e = YomuError e
+let epub_error e = raise @@ yomu_error @@ EpubError e
 
 let register_exn () =
   Printexc.register_printer (function
