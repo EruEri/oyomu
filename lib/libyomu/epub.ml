@@ -223,9 +223,8 @@ module Opf = struct
     guide : Guide.reference list;
   }
 
-  let parse sxml =
-    let s = Xml.parse_string sxml in
-    let childrens = Xml.children s in
+  let parse_xml xml =
+    let childrens = Xml.children xml in
     let metadata, manifest, spine, _guide =
       match childrens with
       | [ metadata; manifest; spine ] ->
@@ -241,13 +240,39 @@ module Opf = struct
     let guide = [] in
     { metadata; items; spines; guide }
 
+  (**
+      [parse_file filename] parses the file [filename] into [content.opf] speficitation
+      @raise [YomuError] if parsing error occures or missing mendatory information
+  *)
+  let parse_file filename =
+    let xml = Xml.parse_file filename in
+    parse_xml xml
+
+  let parse sxml =
+    let s = Xml.parse_string sxml in
+    parse_xml s
+
   let of_archive archive =
-    let _epub =
+    let epub =
       match Convertion.epub_of_zip archive with
       | Some epub ->
           epub
       | None ->
           failwith "Unziip error"
     in
-    ()
+    let entry_file =
+      match Content.find_content_opf epub with
+      | Some file ->
+          file
+      | None ->
+          failwith "Cannot find content.opf"
+    in
+    let xml =
+      match parse_file entry_file with
+      | content ->
+          content
+      | exception (YomuError (EpubError _) as e) ->
+          raise e
+    in
+    (epub, xml)
 end

@@ -23,7 +23,8 @@ let cmd run =
   Cmd.v info (cmd_term run)
 
 let run cmd =
-  let { file = _ } = cmd in
+  let { file } = cmd in
+  let _, _ = Libyomu.Epub.Opf.of_archive file in
   (* let content = Libyomu.Epub.opf_content_of_zip file in
      let _ = Libyomu.Epub.Opf.parse @@ content in
      let content = Libyomu.Epub.epub_of_zip file in *)
