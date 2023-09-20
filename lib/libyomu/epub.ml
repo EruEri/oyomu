@@ -1,35 +1,56 @@
-let content_opf = "content.opf"
+(**********************************************************************************************)
+(*                                                                                            *)
+(* This file is part of Yomu: A comic reader                                                  *)
+(* Copyright (C) 2023 Yves Ndiaye                                                             *)
+(*                                                                                            *)
+(* Yomu is free software: you can redistribute it and/or modify it under the terms            *)
+(* of the GNU General Public License as published by the Free Software Foundation,            *)
+(* either version 3 of the License, or (at your option) any later version.                    *)
+(*                                                                                            *)
+(* Yomu is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;          *)
+(* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR           *)
+(* PURPOSE.  See the GNU General Public License for more details.                             *)
+(* You should have received a copy of the GNU General Public License along with Yomu.         *)
+(* If not, see <http://www.gnu.org/licenses/>.                                                *)
+(*                                                                                            *)
+(**********************************************************************************************)
+
+type epub_content = { tmp_file : string; according_file : string }
+type epub = epub_content list
 
 let epub_of_zip archive_path =
-  let zip = Zip.open_in archive_path in
-  let entries = Zip.entries zip in
-  let content_entry = Zip.find_entry zip content_opf in
-  let _content_content = Zip.read_entry zip content_entry in
-  let () =
-    List.iter
-      (fun entry ->
-        print_endline
-        @@ Printf.sprintf "%s\ndir : %b\n"
-             Zip.(entry.filename)
-             entry.is_directory
-      )
-      entries
-  in
-  let () = Zip.close_in zip in
-  ()
+  try
+    let zip = Zip.open_in archive_path in
+    let entry = Zip.entries zip in
+    let files =
+      List.filter_map
+        (fun entry ->
+          let ( let* ) = Option.bind in
+          let* () =
+            match entry.Zip.is_directory with true -> None | false -> Some ()
+          in
+          let tmp_file, outchan =
+            Filename.open_temp_file
+              (Filename.basename entry.Zip.filename)
+              App.tmp_extension
+          in
+          let () = prerr_endline entry.Zip.filename in
+          let () = Zip.copy_entry_to_file zip entry tmp_file in
+          let () = close_out outchan in
+          Some { tmp_file; according_file = entry.filename }
+        )
+        entry
+    in
+    Some files
+  with _ -> None
 
-let opf_content_of_zip archive_path =
-  let zip = Zip.open_in archive_path in
-  let content_entry = Zip.find_entry zip content_opf in
-  let content_content = Zip.read_entry zip content_entry in
-  let () = Zip.close_in zip in
-  content_content
 
 type epub_error =
   | UnknownError of (int * int)
+  | TooMuchValueForTag of { tag : string }
   | MissingMendatoryKey of { section : string; key : string }
   | MissingAttributes of { attribut : string }
-  | WrongSection of string
+  | WrongExpectedTag of string
 
 exception EpubError of epub_error
 
@@ -40,10 +61,12 @@ let string_of_epub_error =
       Printf.sprintf "Loc error %u %u" i o
   | MissingMendatoryKey { section; key } ->
       sprintf "\"%s\" : missing mendatory key : \"%s\"" section key
+  | TooMuchValueForTag { tag } ->
+      sprintf "Too Much Value For Tag : \"%s\"" tag
   | MissingAttributes { attribut } ->
       sprintf "Missing attribut : \"%s\"" attribut
-  | WrongSection s ->
-      sprintf "Wrong section : \"%s\"" s
+  | WrongExpectedTag s ->
+      sprintf "Wrong expected tag : \"%s\"" s
 
 let register_exn =
   Printexc.register_printer (function
@@ -62,38 +85,140 @@ module Metadata = struct
     let compare = Stdlib.compare
   end)
 
+  type xml_value = { attribues : (string * string) list; values : string list }
+
   type t = {
     title : string;
     language : string;
     identifier : string;
-    others : string MetadataMap.t;
+    others : xml_value MetadataMap.t;
   }
 
-  let section_xml_name = "metadata"
+  let tag_name = "metadata"
   let compare = Stdlib.compare
   let find_opt key metadata = MetadataMap.find_opt key metadata.others
 
   let parse xml =
-    let properties = Xml.children xml in
-    List.iter
-      (fun s ->
-        let values = Xml.children s in
-        let () =
-          List.iter (fun ss -> Printf.printf "%s\n" @@ Xml.to_string ss) values
-        in
-        Printf.printf "%s\n" @@ Xml.to_string s
-      )
-      properties
+    let required_key key map =
+      match MetadataMap.find_opt key map with
+      | Some value ->
+          let value =
+            match value.values with t :: [] -> t | _ :: _ | [] -> failwith ""
+          in
+          value
+      | None ->
+          epub_error @@ MissingAttributes { attribut = key }
+    in
+    let found_tag = Xml.tag xml in
+    let () =
+      match tag_name = found_tag with
+      | true ->
+          ()
+      | false ->
+          epub_error @@ WrongExpectedTag found_tag
+    in
+    let map =
+      Xml.fold
+        (fun acc xml ->
+          let ( $ ) = ( |> ) in
+          let tag = Xml.tag xml in
+          let attribues = Xml.attribs xml in
+          let values =
+            xml $ Xml.children
+            $ List.filter_map (fun xml ->
+                  match xml with
+                  | Xml.PCData content ->
+                      Some content
+                  | Xml.Element _ ->
+                      None
+              )
+          in
+          let xml_value = { attribues; values } in
+          let acc =
+            match tag = "dc:identifier" with
+            | false ->
+                MetadataMap.add tag xml_value acc
+            | true -> (
+                match List.assoc_opt "id" attribues with
+                | Some _ ->
+                    MetadataMap.add tag xml_value acc
+                | None ->
+                    acc
+              )
+          in
+          acc
+        )
+        MetadataMap.empty xml
+    in
+
+    let identifier = required_key "dc:identifier" map in
+    let title = required_key "dc:title" map in
+    let language = required_key "dc:language" map in
+    { identifier; title; language; others = map }
 end
 
 module Manifest = struct
   type item = { id : string; href : string; media_type : string }
   type t = item list
+
+  let tag_name = "manifest"
+
+  let parse xml =
+    let found_tag = Xml.tag xml in
+    let () =
+      match tag_name = found_tag with
+      | true ->
+          ()
+      | false ->
+          epub_error @@ WrongExpectedTag found_tag
+    in
+    List.rev
+    @@ Xml.fold
+         (fun acc xml ->
+           let find_attrit a x =
+             match Xml.attrib x a with
+             | a ->
+                 a
+             | exception _ ->
+                 epub_error @@ MissingAttributes { attribut = a }
+           in
+           let id = find_attrit "id" xml in
+           let href = find_attrit "href" xml in
+           let media_type = find_attrit "media-type" xml in
+           { id; href; media_type } :: acc
+         )
+         [] xml
 end
 
 module Spine = struct
   type item_id = { idref : string }
   type t = item_id list
+
+  let tag_name = "spine"
+
+  let parse xml =
+    let found_tag = Xml.tag xml in
+    let () =
+      match tag_name = found_tag with
+      | true ->
+          ()
+      | false ->
+          epub_error @@ WrongExpectedTag found_tag
+    in
+    List.rev
+    @@ Xml.fold
+         (fun acc xml ->
+           let find_attrit a x =
+             match Xml.attrib x a with
+             | a ->
+                 a
+             | exception _ ->
+                 epub_error @@ MissingAttributes { attribut = a }
+           in
+           let idref = find_attrit "idref" xml in
+           { idref } :: acc
+         )
+         [] xml
 end
 
 module Guide = struct
@@ -111,7 +236,7 @@ module Opf = struct
   let parse sxml =
     let s = Xml.parse_string sxml in
     let childrens = Xml.children s in
-    let metadata, _manifest, _spine, _guide =
+    let metadata, manifest, spine, _guide =
       match childrens with
       | [ metadata; manifest; spine ] ->
           (metadata, manifest, spine, None)
@@ -120,15 +245,9 @@ module Opf = struct
       | _ ->
           failwith "Wrong formated"
     in
-    let _ = Metadata.parse metadata in
-    ()
-  (* let i_opf input =
-     let () = EpubUtil.accpet_dtd None input in
-     let () = EpubUtil.accept_tag_start (("", "package"), []) input in
-     let metadata = Metadata.i_metadata input in
-     let items = Manifest.i_manifest input in
-     let spines = Spine.i_spine input in
-     let guide = [] in
-     let () = EpubUtil.take_end input in
-     { metadata; items; spines; guide } *)
+    let metadata = Metadata.parse metadata in
+    let items = Manifest.parse manifest in
+    let spines = Spine.parse spine in
+    let guide = [] in
+    { metadata; items; spines; guide }
 end
