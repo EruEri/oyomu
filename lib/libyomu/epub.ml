@@ -61,8 +61,8 @@ module Content = struct
   *)
   let find_content_opf : epub -> string option =
     List.find_map (fun { tmp_file; according_file } ->
-        if String.ends_with ~suffix:content_opf tmp_file then
-          Some according_file
+        if String.ends_with ~suffix:content_opf according_file then
+          Some tmp_file
         else
           None
     )
@@ -178,6 +178,8 @@ module Manifest = struct
            { id; href; media_type } :: acc
          )
          [] xml
+
+  let item_of_id sid items = List.find_opt (fun { id; _ } -> id = sid) items
 end
 
 module Spine = struct
@@ -223,6 +225,8 @@ module Opf = struct
     guide : Guide.reference list;
   }
 
+  type epub_opf = { opf : t; epub : epub }
+
   let parse_xml xml =
     let childrens = Xml.children xml in
     let metadata, manifest, spine, _guide =
@@ -267,12 +271,32 @@ module Opf = struct
       | None ->
           failwith "Cannot find content.opf"
     in
-    let xml =
+    let opf =
       match parse_file entry_file with
       | content ->
           content
       | exception (YomuError (EpubError _) as e) ->
           raise e
     in
-    (epub, xml)
+    { epub; opf }
+
+  let item_of_id_opt id epub_opf = Manifest.item_of_id id epub_opf.opf.items
+
+  (**
+    [map_spine f epub_opf] call [f] on each reference pointed by [idref] in [spine] of [epub_opf]
+  *)
+  let map_spine f epub_opf =
+    List.map
+      (fun Spine.{ idref } -> f @@ item_of_id_opt idref epub_opf)
+      epub_opf.opf.spines
+
+  let find_file_opt filename epub_opf =
+    List.find_map
+      (fun { tmp_file; according_file } ->
+        if according_file = filename then
+          Some tmp_file
+        else
+          None
+      )
+      epub_opf.epub
 end
