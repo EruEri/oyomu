@@ -294,3 +294,60 @@ let read_comics ~config mode (archives : Comic.named_archive list) () =
   let () = MagickWand.magick_wand_terminus () in
   let () = Collection.clear_tmp_files () in
   ()
+
+let read_epub_pages zipper =
+  let size : Winsize.t = Winsize.get () in
+  let line_length = size.ws_col in
+  let f =
+    Zipper.action 0
+    @@ fun _ignored index zipper ->
+    let fdrawing =
+      match Zipper.top_left zipper with
+      | None ->
+          failwith "No pages"
+      | Some (Epub.Page.EPImage url) ->
+          let data = Util.Io.content_filename url () in
+          let page = Comic.{ data } in
+          fun () ->
+            ( Zipper.left zipper,
+              draw_page ~index "Random name" CHAFA_PIXEL_MODE_SIXELS page
+            )
+      | Some (EPString _) ->
+          fun () ->
+            let epages, zip =
+              Zipper.take_left_until
+                (fun lc page ->
+                  let res, remain_line = Epub.Page.consume_page lc page in
+                  let size_info = (remain_line, line_length) in
+                  match res with
+                  | Either.Right _ ->
+                      (size_info, false)
+                  | Left _ ->
+                      (size_info, true)
+                )
+                (size.Winsize.ws_row, size.Winsize.ws_col)
+                zipper
+            in
+            let content = String.concat "\n" @@ Epub.Page.fold_content epages in
+            (zip, Termove.draw_string content)
+    in
+    let _ = read_choice () in
+    let _, () = fdrawing () in
+    `Left
+  in
+  f zipper
+
+let render_epub ~config mode (pages : Epub.Page.epub_page list) () =
+  let () = ignore (config, mode) in
+  let open Cbindings in
+  let () = Termove.start_window () in
+  let () = Termove.hide_cursor () in
+  let () = MagickWand.magick_wand_genesis () in
+
+  let z_pages = Zipper.of_list pages in
+  let _ = read_epub_pages z_pages in
+  let () = Termove.end_window () in
+  let () = Termove.show_cursor () in
+  let () = MagickWand.magick_wand_terminus () in
+  let () = Collection.clear_tmp_files () in
+  ()

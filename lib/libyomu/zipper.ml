@@ -23,11 +23,23 @@ exception ZipperOutRight
 
 let left = function [], _ -> raise ZipperOutLeft | t :: q, rhs -> (q, t :: rhs)
 
+let left_elt = function
+  | [], _ ->
+      raise ZipperOutLeft
+  | t :: q, rhs ->
+      (t, (q, t :: rhs))
+
 let right = function
   | _, [] ->
       raise ZipperOutRight
   | lhs, t :: q ->
       (t :: lhs, q)
+
+let right_elt = function
+  | _, [] ->
+      raise ZipperOutRight
+  | lhs, t :: q ->
+      (t, (t :: lhs, q))
 
 let rec swipe n = function
   | (([] | _ :: []), _) as zipper when n > 0 ->
@@ -56,6 +68,29 @@ let is_at_end = function _, [] -> true | _, _ :: _ -> false
 let of_list list : 'a t = (list, [])
 let of_list_end list : 'a t = ([], List.rev list)
 let top_left = function [], _ -> None | t :: _, _ -> Some t
+
+let rec take_left_until f acc zipper =
+  match left_elt zipper with
+  | elt, z ->
+      let new_acc, condition = f acc elt in
+      if condition then
+        let res, new_zip = take_left_until f new_acc z in
+        (elt :: res, new_zip)
+      else
+        ([], zipper)
+  | exception ZipperOutLeft ->
+      ([], zipper)
+
+let rec take_right_until f zipper =
+  match right_elt zipper with
+  | elt, z ->
+      if f elt then
+        let res, new_zip = take_right_until f z in
+        (elt :: res, new_zip)
+      else
+        ([], zipper)
+  | exception ZipperOutRight ->
+      ([], zipper)
 
 let replace_current alt : 'a t -> 'a t = function
   | ([], _) as z ->
