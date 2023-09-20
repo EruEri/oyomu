@@ -89,12 +89,12 @@ let add_normal ~existing ~comic_name indexed_archives =
         let () =
           match
             Util.FileSys.create_folder
-              ~on_error:(Libyomu.Error.Create_folder path) path
+              ~on_error:(Libyomu.Error.CreateFolder path) path
           with
           | Ok _ ->
               ()
           | Error e ->
-              raise @@ Libyomu.Error.(yomu_error @@ Init_Error e)
+              raise @@ Libyomu.Error.(yomu_error @@ InitError e)
         in
         Array.init 0 (fun _ -> String.empty)
   in

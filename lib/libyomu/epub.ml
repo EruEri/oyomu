@@ -15,68 +15,58 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
+open Error
+
 type epub_content = { tmp_file : string; according_file : string }
 type epub = epub_content list
 
-let epub_of_zip archive_path =
-  try
-    let zip = Zip.open_in archive_path in
-    let entry = Zip.entries zip in
-    let files =
-      List.filter_map
-        (fun entry ->
-          let ( let* ) = Option.bind in
-          let* () =
-            match entry.Zip.is_directory with true -> None | false -> Some ()
-          in
-          let tmp_file, outchan =
-            Filename.open_temp_file
-              (Filename.basename entry.Zip.filename)
-              App.tmp_extension
-          in
-          let () = prerr_endline entry.Zip.filename in
-          let () = Zip.copy_entry_to_file zip entry tmp_file in
-          let () = close_out outchan in
-          Some { tmp_file; according_file = entry.filename }
-        )
-        entry
-    in
-    Some files
-  with _ -> None
+module Convertion = struct
+  let epub_of_zip archive_path =
+    try
+      let zip = Zip.open_in archive_path in
+      let entry = Zip.entries zip in
+      let files =
+        List.filter_map
+          (fun entry ->
+            let ( let* ) = Option.bind in
+            let* () =
+              match entry.Zip.is_directory with
+              | true ->
+                  None
+              | false ->
+                  Some ()
+            in
+            let tmp_file, outchan =
+              Filename.open_temp_file
+                (Filename.basename entry.Zip.filename)
+                App.tmp_extension
+            in
+            let () = prerr_endline entry.Zip.filename in
+            let () = Zip.copy_entry_to_file zip entry tmp_file in
+            let () = close_out outchan in
+            Some { tmp_file; according_file = entry.filename }
+          )
+          entry
+      in
+      Some files
+    with _ -> None
+end
 
+module Content = struct
+  let content_opf = "content.opf"
 
-type epub_error =
-  | UnknownError of (int * int)
-  | TooMuchValueForTag of { tag : string }
-  | MissingMendatoryKey of { section : string; key : string }
-  | MissingAttributes of { attribut : string }
-  | WrongExpectedTag of string
-
-exception EpubError of epub_error
-
-let string_of_epub_error =
-  let open Printf in
-  function
-  | UnknownError (i, o) ->
-      Printf.sprintf "Loc error %u %u" i o
-  | MissingMendatoryKey { section; key } ->
-      sprintf "\"%s\" : missing mendatory key : \"%s\"" section key
-  | TooMuchValueForTag { tag } ->
-      sprintf "Too Much Value For Tag : \"%s\"" tag
-  | MissingAttributes { attribut } ->
-      sprintf "Missing attribut : \"%s\"" attribut
-  | WrongExpectedTag s ->
-      sprintf "Wrong expected tag : \"%s\"" s
-
-let register_exn =
-  Printexc.register_printer (function
-    | EpubError epub_error ->
-        Option.some @@ string_of_epub_error epub_error
-    | _ ->
-        None
+  (**
+      [find_content_opf epub] retuns the temporary filename associated with
+      the file [content.opf]
+  *)
+  let find_content_opf : epub -> string option =
+    List.find_map (fun { tmp_file; according_file } ->
+        if String.ends_with ~suffix:content_opf tmp_file then
+          Some according_file
+        else
+          None
     )
-
-let epub_error e = raise @@ EpubError e
+end
 
 module Metadata = struct
   module MetadataMap = Map.Make (struct
@@ -250,4 +240,14 @@ module Opf = struct
     let spines = Spine.parse spine in
     let guide = [] in
     { metadata; items; spines; guide }
+
+  let of_archive archive =
+    let _epub =
+      match Convertion.epub_of_zip archive with
+      | Some epub ->
+          epub
+      | None ->
+          failwith "Unziip error"
+    in
+    ()
 end

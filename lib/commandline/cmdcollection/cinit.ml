@@ -108,7 +108,7 @@ let run cmd_init =
   let res =
     match is_app_folder_exist && not (force || encrypted) with
     | true ->
-        Error Error.(App_folder_already_exist App.yomu_share)
+        Error Error.(AppFolderAlreadyExist App.yomu_share)
     | false ->
         let () = clear_if (is_app_folder_exist && force) () in
         let _ = init_config () in
@@ -129,6 +129,6 @@ let run cmd_init =
   | Ok _ ->
       Printf.printf "Yomu initialized\n"
   | Error init_error ->
-      raise @@ Error.(yomu_error @@ Init_Error init_error)
+      raise @@ Error.(yomu_error @@ InitError init_error)
 
 let command = cmd run

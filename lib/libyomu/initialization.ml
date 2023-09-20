@@ -19,14 +19,14 @@ open Util.FileSys
 
 (** [create_yomu_share ()] create the folder [ $XDG_DATA_HOME/share/yomu] *)
 let create_yomu_share () =
-  create_folder ~on_error:(Error.Create_folder App.yomu_share) App.yomu_share
+  create_folder ~on_error:(Error.CreateFolder App.yomu_share) App.yomu_share
 
 (** 
   [create_yomu_comic ()] create the folder [comic] in [$XDG_DATA_HOME/share/yomu] so 
   [$XDG_DATA_HOME/share/yomu/comics]
 *)
 let create_yomu_comics () =
-  create_folder ~on_error:(Error.Create_folder App.yomu_comics) App.yomu_comics
+  create_folder ~on_error:(Error.CreateFolder App.yomu_comics) App.yomu_comics
 
 (** [create_yomu_config ()] create the folder [ $XDG_CONFIG_HOME/yomu] and the config file [App.config_file_name]*)
 let create_yomu_config () =
@@ -55,7 +55,7 @@ let check_app_initialized () =
 let create_yomu_hidden ~key () =
   let ( let* ) = Result.bind in
   let* _ =
-    create_folder ~on_error:(Error.Create_file App.yomu_hidden_comics)
+    create_folder ~on_error:(Error.CreateFile App.yomu_hidden_comics)
       App.yomu_hidden_comics
   in
   let syomurc = Comic.Syomu.create in
@@ -63,8 +63,7 @@ let create_yomu_hidden ~key () =
   let* s =
     create_file
       ~on_file:(fun oc -> output_string oc encrypted)
-      ~on_error:(Error.Create_file App.yomu_hidden_config)
-      App.yomu_hidden_config
+      ~on_error:(Error.CreateFile App.yomu_hidden_config) App.yomu_hidden_config
   in
   Ok s
 

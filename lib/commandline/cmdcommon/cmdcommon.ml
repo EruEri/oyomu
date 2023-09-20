@@ -31,14 +31,14 @@ let check_yomu_hidden () =
   | Ok () ->
       ()
   | Error e ->
-      raise @@ Libyomu.Error.(yomu_error @@ Missing_init_file e)
+      raise @@ Libyomu.Error.(yomu_error @@ MissingInitFile e)
 
 let check_yomu_initialiaze () =
   match Libyomu.Init.check_yomu_initialiaze () with
   | Ok () ->
       ()
   | Error _ ->
-      raise @@ Libyomu.Error.(yomu_error @@ Yomu_Not_Initialized)
+      raise @@ Libyomu.Error.(yomu_error @@ YomuNotInitialized)
 
 let keep_unzipped_term =
   Arg.(
