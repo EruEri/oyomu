@@ -23,6 +23,7 @@
   cbindings
   xdg
   str
+  xml-light
   cmdliner
   camlzip
   dune-build-info

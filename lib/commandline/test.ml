@@ -24,7 +24,8 @@ let cmd run =
 
 let run cmd =
   let { file } = cmd in
-  let () = Libyomu.Epub.epub_of_zip file in
+  let content = Libyomu.Epub.opf_content_of_zip file in
+  let _ = Libyomu.Epub.Opf.parse @@ content in
   ()
 
 let command = cmd run
