@@ -300,3 +300,95 @@ module Opf = struct
       )
       epub_opf.epub
 end
+
+module Page = struct
+  type epub_page =
+    | EPString of string
+    (* Image path *)
+    | EPImage of string
+
+  let to_string = function
+    | EPString s ->
+        Printf.sprintf "Content :\n%s" s
+    | EPImage i ->
+        Printf.sprintf "Image url :\n%s" i
+
+  let rec indent n =
+    match n with
+    | n when n < 0 ->
+        String.empty
+    | n ->
+        Printf.sprintf "  %s" @@ indent @@ (n - 1)
+
+  let rec body_to_page acc opf level xml_body =
+    match xml_body with
+    | Xml.PCData d ->
+        let ( >>> ) = ( |> ) in
+        let content = Printf.sprintf "%s%s%!" (indent level) d in
+        let lines =
+          content >>> String.split_on_char '\n'
+          >>> List.map (fun s -> EPString s)
+        in
+        lines @ acc
+    | Xml.Element (tag, _attributes, children) -> (
+        match tag with
+        | "p" | "li" ->
+            let pages =
+              List.map (body_to_page acc opf @@ (level + 1)) children
+            in
+            List.flatten pages
+        | "img" ->
+            let acc =
+              match Xml.attrib xml_body "src" with
+              | path ->
+                  EPImage (Option.get @@ Opf.find_file_opt path opf) :: acc
+              | exception _ ->
+                  let () = prerr_string "To attrib src found" in
+                  acc
+            in
+            acc
+        | _ ->
+            let pages = List.map (body_to_page acc opf @@ level) children in
+            List.flatten pages
+      )
+
+  let body_to_page opf = body_to_page [] opf 0
+
+  let body opf file =
+    let ( let* ) = Option.bind in
+    let html = Xml.parse_file file in
+    let* head =
+      List.find_map
+        (fun xml ->
+          let tag = Xml.tag xml in
+          if tag = "body" then
+            Some xml
+          else
+            None
+        )
+        (Xml.children html)
+    in
+    (* let () = print_endline @@ String.concat "\n" @@ List.map to_string @@ body_to_page head in *)
+    Option.some @@ body_to_page opf head
+
+  (*
+      left string_content, right = image_path 
+      assume   EPString s doesn't contains newline
+    *)
+  let consume_page (line, column) = function
+    | EPImage i ->
+        (Either.right i, 0)
+    | EPString s ->
+        let len = String.length s in
+        let line_used = (len / column) + 1 in
+        if line_used > line then
+          (Either.left @@ Option.none, line)
+        else
+          (Either.left @@ Option.some s, line - line_used)
+
+  let rec fold_content = function
+    | [] | EPImage _ :: _ ->
+        []
+    | EPString s :: q ->
+        s :: fold_content q
+end
