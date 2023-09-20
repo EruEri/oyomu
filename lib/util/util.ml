@@ -99,6 +99,16 @@ module Io = struct
     filename
 end
 
+module UList = struct
+  let rec last = function
+    | [] ->
+        failwith "Empty list"
+    | t :: [] ->
+        t
+    | _ :: q ->
+        last q
+end
+
 module AsciiString = struct
   let bold_sseq = "\u{001B}[1m"
   let bold_eseq = "\u{001B}[22m"

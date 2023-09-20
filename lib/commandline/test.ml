@@ -24,7 +24,23 @@ let cmd run =
 
 let run cmd =
   let { file } = cmd in
-  let _, _ = Libyomu.Epub.Opf.of_archive file in
+  let module E = Libyomu.Epub in
+  let epub_opf = E.Opf.of_archive file in
+  let f =
+    E.Opf.map_spine
+    @@ Option.map (fun item ->
+           let tmp_file =
+             match E.Opf.find_file_opt item.E.Manifest.href epub_opf with
+             | Some f ->
+                 f
+             | None ->
+                 failwith "No file tmp solus"
+           in
+           let _ = Libyomu.Html.body tmp_file in
+           ()
+       )
+  in
+  let _ = f epub_opf in
   (* let content = Libyomu.Epub.opf_content_of_zip file in
      let _ = Libyomu.Epub.Opf.parse @@ content in
      let content = Libyomu.Epub.epub_of_zip file in *)

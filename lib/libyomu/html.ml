@@ -15,14 +15,40 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-module App = App
-module Error = Error
-module Comic = Comic
-module Ccallback = Ccallback
-module Drawing = Drawing
-module Collection = Collection
-module Init = Initialization
-module Input = Input
-module Encryption = Encryption
-module Epub = Epub
-module Html = Html
+let rec indent n =
+  match n with
+  | n when n < 0 ->
+      String.empty
+  | n ->
+      Printf.sprintf "  %s" @@ indent @@ (n - 1)
+
+let rec body_to_string level xml_body =
+  match xml_body with
+  | Xml.PCData d ->
+      Printf.sprintf "%s%s%!" (indent level) d
+  | Xml.Element (tag, _attributes, children) -> (
+      match tag with
+      | "p" | "li" ->
+          children
+          |> List.map (body_to_string @@ (level + 1))
+          |> String.concat "\n"
+      | _ ->
+          children |> List.map (body_to_string @@ level) |> String.concat "\n"
+    )
+
+let body file =
+  let ( let* ) = Option.bind in
+  let html = Xml.parse_file file in
+  let* head =
+    List.find_map
+      (fun xml ->
+        let tag = Xml.tag xml in
+        if tag = "body" then
+          Some xml
+        else
+          None
+      )
+      (Xml.children html)
+  in
+  let () = print_endline @@ body_to_string 0 head in
+  Some ()
