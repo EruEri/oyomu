@@ -72,23 +72,69 @@ module KeyBindingConst = struct
   let val_quit = val_key ~default:'q' key_variable_quit
 end
 
-
-
 module Config = struct
-  module M = Map.Make(String)
+  module M = Map.Make (String)
 
-  let parse () = 
-    let (let*) = Result.bind in
+  type t = { variables : string M.t }
+
+  let empty = { variables = M.empty }
+
+  let parse () =
+    let ( let* ) = Result.bind in
     let ok = Result.ok in
     let err = Result.error in
-    let* _s = match Util.Io.content_filename yomu_config_file () with
-      | s -> ok s
-      | exception _ -> err (`EReadConfig)
+    let* s =
+      match Util.Io.content_filename yomu_config_file () with
+      | s ->
+          ok s
+      | exception _ ->
+          err `EReadConfig
     in
-    (* s 
-      |> String.split_on_char '\n' 
-      |> Util.Ulist.map_ok (fun acc elt -> 
-        
-      ) M.empty *)
-      failwith ""
+
+    s |> String.split_on_char '\n'
+    |> List.mapi (fun i v -> (i, v))
+    |> List.fold_left
+         (fun (acc, err_indexes) (index, elt) ->
+           let line = String.split_on_char '=' elt in
+           match line with
+           | key :: (_ :: _ as values) ->
+               let key = String.trim key in
+               let value = String.concat "=" values in
+               let value = String.trim value in
+               (M.add key value acc, err_indexes)
+           | [] | _ :: _ ->
+               (acc, index :: err_indexes)
+         )
+         (M.empty, [])
+    |> fun (variables, error) -> ({ variables }, error) |> ok
+
+  let key key_name key_value ?override config =
+    let ( >== ) = Option.bind in
+    match override with
+    | Some key ->
+        key
+    | None ->
+        config.variables |> M.find_opt key_name
+        >== (fun s -> try Some s.[0] with _ -> None)
+        |> Option.value ~default:key_value
+
+  let quit =
+    let open KeyBindingConst in
+    key key_variable_quit 'q'
+
+  let next_page =
+    let open KeyBindingConst in
+    key key_variable_next_page 'l'
+
+  let previous_page =
+    let open KeyBindingConst in
+    key key_variable_previous_page 'h'
+
+  let goto_page =
+    let open KeyBindingConst in
+    key key_variable_goto_page 'g'
+
+  let goto_book =
+    let open KeyBindingConst in
+    key key_variable_goto_book 'b'
 end
