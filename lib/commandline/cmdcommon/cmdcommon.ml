@@ -32,10 +32,10 @@ let check_yomu_initialiaze () =
       raise @@ Libyomu.Error.(yomu_error @@ Yomu_Not_Initialized)
 
 let keep_unzipped_term =
-  let var_info = Cmd.Env.info Libyomu.App.KeyBindingConst.variable_keep_unzip in
   Arg.(
-    value & flag
-    & info [ "keep-unzipped" ] ~env:var_info
+    value
+    & opt (some bool) None
+    & info [ "keep-unzipped" ]
         ~doc:
           "Indicate whether unzipped comics should be kept in memory. If set, \
            unzipped comics won't be unzipped again if read again but cause a \

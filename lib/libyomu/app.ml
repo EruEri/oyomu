@@ -79,7 +79,13 @@ module Config = struct
 
   let empty = { variables = M.empty }
 
-  let parse () =
+  let create keep_unzipped =
+    let s = Bool.to_string keep_unzipped in
+    let variables = M.singleton KeyBindingConst.variable_keep_unzip s in
+    let s = { variables } in
+    s
+
+  let parse ?keep_unzipped () =
     let ( let* ) = Result.bind in
     let ok = Result.ok in
     let err = Result.error in
@@ -106,7 +112,18 @@ module Config = struct
                (acc, index :: err_indexes)
          )
          (M.empty, [])
-    |> fun (variables, error) -> ({ variables }, error) |> ok
+    |> fun (variables, error) ->
+    (let variables =
+       match keep_unzipped with
+       | Some b ->
+           let sb = Bool.to_string b in
+           M.add KeyBindingConst.variable_keep_unzip sb variables
+       | None ->
+           variables
+     in
+     ({ variables }, error)
+    )
+    |> ok
 
   let key key_name key_value ?override config =
     let ( >== ) = Option.bind in
@@ -137,4 +154,11 @@ module Config = struct
   let goto_book =
     let open KeyBindingConst in
     key key_variable_goto_book 'b'
+
+  let keep_unzipped config =
+    let ( >== ) = Option.bind in
+    config.variables
+    |> M.find_opt KeyBindingConst.variable_keep_unzip
+    >== bool_of_string_opt
+    |> Option.value ~default:false
 end
