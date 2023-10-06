@@ -24,7 +24,7 @@ let xdg_config = Xdg.config_dir xdg
 let comics_folder_name = "comics"
 let hidden_folder_name = ".scomics"
 let hidden_config_name = ".syomurc"
-let config_file_name = "config"
+let config_file_name = "yomurc"
 let yomu_share = xdg_data // yomu_name
 let yomu_comics = yomu_share // comics_folder_name
 
@@ -37,7 +37,7 @@ let yomu_hidden_config = yomu_hidden_comics // hidden_config_name
 (** [$XDG_CONFIG_HOME/yomu/]*)
 let yomu_config = xdg_config // yomu_name
 
-(** [$XDG_CONFIG_HOME/yomu/config]*)
+(** [$XDG_CONFIG_HOME/yomu/yomurc]*)
 let yomu_config_file = yomu_config // config_file_name
 
 let is_app_folder_exist () = Sys.file_exists yomu_share
@@ -70,4 +70,25 @@ module KeyBindingConst = struct
   let val_goto_page = val_key ~default:'g' key_variable_goto_page
   let val_goto_book = val_key ~default:'b' key_variable_goto_book
   let val_quit = val_key ~default:'q' key_variable_quit
+end
+
+
+
+module Config = struct
+  module M = Map.Make(String)
+
+  let parse () = 
+    let (let*) = Result.bind in
+    let ok = Result.ok in
+    let err = Result.error in
+    let* _s = match Util.Io.content_filename yomu_config_file () with
+      | s -> ok s
+      | exception _ -> err (`EReadConfig)
+    in
+    (* s 
+      |> String.split_on_char '\n' 
+      |> Util.Ulist.map_ok (fun acc elt -> 
+        
+      ) M.empty *)
+      failwith ""
 end
