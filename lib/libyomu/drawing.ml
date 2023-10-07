@@ -49,16 +49,16 @@ let draw_error_message message =
   in
   Termove.draw_string message
 
-let draw_image (winsize : Winsize.t) mode ~width ~height ~row_stride pixels =
+let draw_image ~width ~height ~row_stride (winsize : Winsize.t) mode key_config
+    pixels =
   let width = Int64.to_int width in
   let height = Int64.to_int height in
 
+  let x_scale = App.Config.x_scale mode key_config in
+  let y_scale = App.Config.y_scale mode key_config in
+
   let scaled_width, scaled_height =
-    match mode with
-    | Chafa.CHAFA_PIXEL_MODE_SIXELS ->
-        (sixel_x_fac * scale winsize.ws_col, sixel_y_fac * scale winsize.ws_row)
-    | _ ->
-        (scale winsize.ws_col, scale winsize.ws_row)
+    (scale ~fac:x_scale winsize.ws_col, scale ~fac:y_scale winsize.ws_row)
   in
   let config = Chafa.chafa_canvas_config_new () in
   let () = Chafa.chafa_canvas_config_set_pixel_mode config mode in
@@ -78,7 +78,7 @@ let draw_image (winsize : Winsize.t) mode ~width ~height ~row_stride pixels =
   let () = Chafa.chafa_canvas_config_unref config in
   ()
 
-let draw_page ~index comic_name mode (page : Comic.page) =
+let draw_page ~index comic_name mode key_config (page : Comic.page) =
   let winsize = Winsize.get () in
   let () = Termove.redraw_empty () in
   let () = Termove.set_cursor_at 0 0 in
@@ -101,7 +101,8 @@ let draw_page ~index comic_name mode (page : Comic.page) =
         let () =
           match exported with
           | true ->
-              draw_image winsize mode ~width ~height ~row_stride pixels
+              draw_image winsize mode key_config ~width ~height ~row_stride
+                pixels
           | false ->
               draw_error_message "cannot export"
         in
@@ -208,7 +209,7 @@ let read_page comic_name mode key_config ignored index zipper =
         | true ->
             ()
         | false ->
-            let () = draw_page ~index comic_name mode page in
+            let () = draw_page ~index comic_name mode key_config page in
             ()
       in
       let option = read_choice key_config () in

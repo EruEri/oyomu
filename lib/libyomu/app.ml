@@ -51,7 +51,22 @@ let check_app_initialized () =
 
 module KeyBindingConst = struct
   let yomu_variable_make = Printf.sprintf "YOMU_%s"
-  let key_variable_make = Printf.sprintf "YOMU_%s_KEY"
+  let key_variable_make s = yomu_variable_make @@ Printf.sprintf "%s_KEY" s
+
+  let scale_variable_make axe pixel =
+    let s_pixel =
+      match pixel with
+      | Cbindings.Chafa.CHAFA_PIXEL_MODE_ITERM2 ->
+          "ITERM"
+      | CHAFA_PIXEL_MODE_KITTY ->
+          "KITTY"
+      | CHAFA_PIXEL_MODE_SIXELS ->
+          "SIXEL"
+      | CHAFA_PIXEL_MODE_SYMBOLS ->
+          "SYMBOL"
+    in
+    let s_axe = Util.Axe.to_string axe in
+    yomu_variable_make @@ Printf.sprintf "SCALE_%s_%s" s_axe s_pixel
 
   let val_key ~default variable_name =
     let ( >>= ) = Option.bind in
@@ -96,6 +111,7 @@ module Config = struct
       | exception _ ->
           err `EReadConfig
     in
+    let () = print_endline s in
 
     s |> String.split_on_char '\n'
     |> List.mapi (fun i v -> (i, v))
@@ -161,4 +177,16 @@ module Config = struct
     |> M.find_opt KeyBindingConst.variable_keep_unzip
     >== bool_of_string_opt
     |> Option.value ~default:false
+
+  let x_scale pixel config =
+    let key_name = KeyBindingConst.scale_variable_make AxeX pixel in
+    let ( >== ) = Option.bind in
+    config.variables |> M.find_opt key_name >== int_of_string_opt
+    |> Option.value ~default:90
+
+  let y_scale pixel config =
+    let key_name = KeyBindingConst.scale_variable_make AxeY pixel in
+    let ( >== ) = Option.bind in
+    config.variables |> M.find_opt key_name >== int_of_string_opt
+    |> Option.value ~default:90
 end

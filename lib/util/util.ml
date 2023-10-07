@@ -131,3 +131,17 @@ module Ulist = struct
         let* acc = f acc t in
         fold_ok f acc q
 end
+
+module Axe = struct
+  type t = AxeX | AxeY
+
+  let to_string ?(uppercase = true) elt =
+    let transform =
+      if uppercase then
+        String.capitalize_ascii
+      else
+        Fun.id
+    in
+    let s = match elt with AxeX -> "x" | AxeY -> "y" in
+    transform s
+end
