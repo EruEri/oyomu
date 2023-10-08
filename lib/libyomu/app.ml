@@ -113,8 +113,6 @@ module Config = struct
       | exception _ ->
           err `EReadConfig
     in
-    let () = print_endline s in
-
     s |> String.split_on_char '\n'
     |> List.mapi (fun i v -> (i, v))
     |> List.fold_left
@@ -210,6 +208,9 @@ module Config = struct
     |> M.find_opt KeyBindingConst.variable_keep_unzip
     >== bool_of_string_opt
     |> Option.value ~default:false
+
+  let replace_keep_unzipped value =
+    replace KeyBindingConst.variable_keep_unzip @@ Printf.sprintf "%b" value
 
   (**
       [x_scale pixel config] searchs in [config] the value of [YOMU_SCALE_X_%PIXEL]

@@ -43,11 +43,18 @@ end
 module FileSys = struct
   let create_folder ?(perm = 0o700) ~on_error folder =
     let to_path_string = folder in
-    match Sys.mkdir to_path_string perm with
-    | exception _ ->
-        Error on_error
-    | () ->
-        Ok folder
+    match Sys.file_exists to_path_string with
+    | true ->
+        Ok to_path_string
+    | false ->
+        let r =
+          match Sys.mkdir to_path_string perm with
+          | exception _ ->
+              Error on_error
+          | () ->
+              Ok folder
+        in
+        r
 
   let create_file ?(on_file = fun _ -> ()) ~on_error file =
     let to_file_path = file in
@@ -62,8 +69,10 @@ module FileSys = struct
   let rec rmrf path () =
     match Sys.is_directory path with
     | true ->
-        Sys.readdir path
-        |> Array.iter (fun name -> rmrf (Filename.concat path name) ());
+        let () =
+          Sys.readdir path
+          |> Array.iter (fun name -> rmrf (Filename.concat path name) ())
+        in
         Unix.rmdir path
     | false ->
         Sys.remove path
