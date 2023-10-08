@@ -39,7 +39,10 @@ module Main = struct
     ]
 
   let root_info = Cmd.info name ~doc:root_doc ~man:root_man ~version
-  let subcommands = [ Read.command; Cmdcollection.command; Config.command; Test.command ]
+
+  let subcommands =
+    [ Read.command; Cmdcollection.command; Config.command; Test.command ]
+
   let parse () = Cmd.group root_info subcommands
 
   let eval () =

@@ -295,7 +295,7 @@ let read_comics ~config mode (archives : Comic.named_archive list) () =
   let () = Collection.clear_tmp_files () in
   ()
 
-let read_epub_pages zipper =
+let read_epub_pages config zipper =
   let size : Winsize.t = Winsize.get () in
   let line_length = size.ws_col in
   let f =
@@ -310,7 +310,7 @@ let read_epub_pages zipper =
           let page = Comic.{ data } in
           fun () ->
             ( Zipper.left zipper,
-              draw_page ~index "Random name" CHAFA_PIXEL_MODE_SIXELS page
+              draw_page ~index "Random name" CHAFA_PIXEL_MODE_SIXELS config page
             )
       | Some (EPString _) ->
           fun () ->
@@ -331,21 +331,21 @@ let read_epub_pages zipper =
             let content = String.concat "\n" @@ Epub.Page.fold_content epages in
             (zip, Termove.draw_string content)
     in
-    let _ = read_choice () in
+    let _ = read_choice config () in
     let _, () = fdrawing () in
     `Left
   in
   f zipper
 
 let render_epub ~config mode (pages : Epub.Page.epub_page list) () =
-  let () = ignore (config, mode) in
+  let () = ignore mode in
   let open Cbindings in
   let () = Termove.start_window () in
   let () = Termove.hide_cursor () in
   let () = MagickWand.magick_wand_genesis () in
 
   let z_pages = Zipper.of_list pages in
-  let _ = read_epub_pages z_pages in
+  let _ = read_epub_pages config z_pages in
   let () = Termove.end_window () in
   let () = Termove.show_cursor () in
   let () = MagickWand.magick_wand_terminus () in

@@ -48,7 +48,14 @@ let run cmd =
   in
 
   let pages = List.flatten @@ List.flatten @@ f epub_opf in
-  let _ = Libyomu.Drawing.render_epub ~config:() () pages () in
+  let (config, _lines_errors), _err =
+    match Libyomu.App.Config.parse () with
+    | Ok c ->
+        (c, false)
+    | Error _ ->
+        ((Libyomu.App.Config.empty, []), true)
+  in
+  let _ = Libyomu.Drawing.render_epub ~config () pages () in
   (* let content = Libyomu.Epub.opf_content_of_zip file in
      let _ = Libyomu.Epub.Opf.parse @@ content in
      let content = Libyomu.Epub.epub_of_zip file in *)
