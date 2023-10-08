@@ -245,7 +245,7 @@ let run cmd_config =
     | true ->
         let _ =
           ( !! )
-            (Result.map_error (fun i -> Libyomu.Error.Init_Error i)
+            (Result.map_error (fun i -> Libyomu.Error.InitError i)
             @@ Libyomu.Init.create_yomu_config ()
             )
         in

@@ -32,11 +32,10 @@ let create_yomu_comics () =
 let create_yomu_config () =
   let ( let* ) = Result.bind in
   let* _ =
-    create_folder ~on_error:(Error.Create_folder App.yomu_config)
-      App.yomu_config
+    create_folder ~on_error:(Error.CreateFile App.yomu_config) App.yomu_config
   in
   let* s =
-    create_file ~on_error:(Error.Create_file App.yomu_config_file)
+    create_file ~on_error:(Error.CreateFile App.yomu_config_file)
       App.yomu_config_file
   in
   Ok s
@@ -44,7 +43,7 @@ let create_yomu_config () =
 let check_app_initialized () =
   let () =
     if not @@ App.is_app_folder_exist () then
-      raise @@ Error.yomu_error @@ Yomu_Not_Initialized
+      raise @@ Error.yomu_error @@ YomuNotInitialized
   in
   ()
 
