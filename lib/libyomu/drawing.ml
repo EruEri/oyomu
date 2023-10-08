@@ -17,8 +17,6 @@
 
 open Cbindings
 
-type drawing_config = { keep_unzipped : bool }
-
 let debug_string content =
   Out_channel.with_open_text "debug" (fun oc -> Printf.fprintf oc "%s\n" content)
 

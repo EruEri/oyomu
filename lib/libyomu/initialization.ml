@@ -41,6 +41,13 @@ let create_yomu_config () =
   in
   Ok s
 
+let check_app_initialized () =
+  let () =
+    if not @@ App.is_app_folder_exist () then
+      raise @@ Error.yomu_error @@ Yomu_Not_Initialized
+  in
+  ()
+
 (** 
   [create_yomu_hidden ()] create the folder [.scomics] in [$XDG_DATA_HOME/share/yomu] so 
   [$XDG_DATA_HOME/share/yomu/.scomics] and the file [.syomurc]

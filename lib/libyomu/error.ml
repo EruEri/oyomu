@@ -34,6 +34,7 @@ type error =
   | No_Option_choosen
   | No_file_to_decrypt
   | Yomu_Not_Initialized
+  | YomuCreateConfigError
   | DecryptionError of string
   | Already_Existing_name of string
   | Volume_already_existing of { comic : string; volume : int }
@@ -68,6 +69,8 @@ let string_of_error = function
   | Yomu_Not_Initialized ->
       Printf.sprintf
         "\"yomu\" directory doesn't exist. Use oyomu init to initialize"
+  | YomuCreateConfigError ->
+      Printf.sprintf "Unable to create the file : %s" @@ App.yomu_config_file
   | No_Option_choosen ->
       "Operation Aborted"
   | Missing_init_file file ->
@@ -106,4 +109,5 @@ let register_exn () =
         None
     )
 
+let emit_warning s = ignore s
 let register_exn = register_exn ()
