@@ -1,6 +1,6 @@
 # CHANGELOG
 
-# [Unrealeased]
+# [0.2.1]
 - [Use config file to change some behavior](https://github.com/EruEri/oyomu/pull/5)
 
 # 0.2.0

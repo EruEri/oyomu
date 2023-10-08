@@ -159,7 +159,7 @@ let man =
   [
     `S Manpage.s_description;
     `P "See and configure the keybinding and the image scaling";
-    `P "The configuration file is located in your $XDG_CONFIG_HOME/yomu/yomurc";
+    `P "The configuration file is located in your XDG_CONFIG_HOME/yomu/yomurc";
     `P
       "This file is constituated of an succession of key value pairs splitted \
        by an equal";
