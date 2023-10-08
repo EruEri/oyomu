@@ -26,6 +26,15 @@
 
 (rule
  (with-stdout-to
+  oyomu-config.1
+  (run %{bin:oyomu} config --help=groff)))
+
+(install
+ (section man)
+ (files oyomu-config.1))
+
+(rule
+ (with-stdout-to
   oyomu-read.1
   (run %{bin:oyomu} read --help=groff)))
 
