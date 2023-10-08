@@ -28,9 +28,25 @@ let create_yomu_share () =
 let create_yomu_comics () =
   create_folder ~on_error:(Error.Create_folder App.yomu_comics) App.yomu_comics
 
-(** [create_yomu_config ()] create the folder [ $XDG_CONFIG_HOME/yomu] *)
+(** [create_yomu_config ()] create the folder [ $XDG_CONFIG_HOME/yomu] and the config file [App.config_file_name]*)
 let create_yomu_config () =
-  create_folder ~on_error:(Error.Create_folder App.yomu_comics) App.yomu_comics
+  let ( let* ) = Result.bind in
+  let* _ =
+    create_folder ~on_error:(Error.Create_folder App.yomu_config)
+      App.yomu_config
+  in
+  let* s =
+    create_file ~on_error:(Error.Create_file App.yomu_config_file)
+      App.yomu_config_file
+  in
+  Ok s
+
+let check_app_initialized () =
+  let () =
+    if not @@ App.is_app_folder_exist () then
+      raise @@ Error.yomu_error @@ Yomu_Not_Initialized
+  in
+  ()
 
 (** 
   [create_yomu_hidden ()] create the folder [.scomics] in [$XDG_DATA_HOME/share/yomu] so 

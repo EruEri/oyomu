@@ -78,9 +78,9 @@ To Initialize the collection use ```ìnit``` subcommand
 
 Oyomu has 2 strategies to store your comic:
 - Normal:
-    - Your comics are stored in your **$XDG_DATA_DIR/yomu/comics** directory where each folder holds the volumes of the serie
+    - Your comics are stored in your **$XDG_DATA_HOME/yomu/comics** directory where each folder holds the volumes of the serie
 - Encrypted:
-    - Your comics are stored in your **$XDG_DATA_DIR/yomu/.scomics** directory and are encrypted with a password that the ```ìnit``` 
+    - Your comics are stored in your **$XDG_DATA_HOME/yomu/.scomics** directory and are encrypted with a password that the ```ìnit``` 
     wizard will ask you to set if the option **--encryption** is set
 
 

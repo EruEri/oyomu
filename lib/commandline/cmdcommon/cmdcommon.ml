@@ -32,10 +32,10 @@ let check_yomu_initialiaze () =
       raise @@ Libyomu.Error.(yomu_error @@ Yomu_Not_Initialized)
 
 let keep_unzipped_term =
-  let var_info = Cmd.Env.info Libyomu.App.KeyBindingConst.variable_keep_unzip in
   Arg.(
-    value & flag
-    & info [ "keep-unzipped" ] ~env:var_info
+    value
+    & opt (some bool) None
+    & info [ "keep-unzipped" ]
         ~doc:
           "Indicate whether unzipped comics should be kept in memory. If set, \
            unzipped comics won't be unzipped again if read again but cause a \
@@ -99,12 +99,6 @@ let read_common_description =
   [
     `S "KEY BINDINGS";
     `P "This section presents the default key bindings";
-    `Noblank;
-    `P
-      (Printf.sprintf
-         "see $(b,%s) section to see which environment variable maps which key"
-         Manpage.s_environment
-      );
     `I ("To go to the next page", "Press $(b,'l')");
     `I ("To go to the precious page", "Press $(b,'j')");
     `I ("To quit", "Press $(b,'q')");
@@ -114,10 +108,7 @@ let read_common_description =
     `P
       "If you had loaded multiple comics, you can do the same movement than \
        with the pages but with the book by replacing the 'g' by 'b'";
-    `S Manpage.s_environment;
-    var_next_page;
-    var_previous_page;
-    var_quit;
-    var_goto_page;
-    var_goto_book;
+    `P "To change the key, see $(mname) config";
+    `S Manpage.s_see_also;
+    `P "$(mname)-config(1)";
   ]

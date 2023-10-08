@@ -89,6 +89,11 @@ let init_normal () =
   Libyomu.Init.create_yomu_share ()
   >>= fun _ -> Libyomu.Init.create_yomu_comics ()
 
+let init_config () =
+  let ( >>= ) = Result.bind in
+  Libyomu.Init.create_yomu_config ()
+  >>= fun _ -> Libyomu.Init.create_yomu_config ()
+
 let clear_if should_clear () =
   match should_clear with
   | false ->
@@ -106,6 +111,7 @@ let run cmd_init =
         Error Error.(App_folder_already_exist App.yomu_share)
     | false ->
         let () = clear_if (is_app_folder_exist && force) () in
+        let _ = init_config () in
         let res =
           match is_app_folder_exist with
           | true when encrypted ->

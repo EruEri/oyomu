@@ -30,7 +30,7 @@ let pixels_modes =
 
 type t = {
   mode : Cbindings.Chafa.pixel_mode;
-  keep_unzipped : bool;
+  keep_unzipped : bool option;
   files : string list;
 }
 
@@ -75,7 +75,13 @@ let archive_of_file file =
 
 let run cmd_read =
   let { files; keep_unzipped; mode } = cmd_read in
-  let config = Libyomu.Drawing.{ keep_unzipped } in
+  let (config, _lines_errors), _err =
+    match Libyomu.App.Config.parse ?keep_unzipped () with
+    | Ok c ->
+        (c, false)
+    | Error _ ->
+        ((Libyomu.App.Config.empty, []), true)
+  in
   let files = List.map archive_of_file files in
   let () = Libyomu.Drawing.read_comics ~config mode files () in
   ()
