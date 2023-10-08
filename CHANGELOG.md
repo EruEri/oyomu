@@ -1,5 +1,8 @@
 # CHANGELOG
 
+# [Unrealeased]
+- [Use config file to change some behavior](https://github.com/EruEri/oyomu/pull/5)
+
 # 0.2.0
 - [Decrypt/Rename collection subcommand](https://github.com/EruEri/oyomu/pull/3)
 - [Add option to read commands for unzip keep strategy](https://github.com/EruEri/oyomu/pull/2)

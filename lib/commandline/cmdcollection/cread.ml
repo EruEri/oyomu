@@ -180,7 +180,7 @@ let read_encrypted ~key all specifics =
 
 let run cmd =
   let { encrypted; keep_unzipped; all; specifics; pixel_mode } = cmd in
-  let (config, lines_errors), err =
+  let (config, _lines_errors), _err =
     match Libyomu.App.Config.parse ?keep_unzipped () with
     | Ok c ->
         (c, false)
@@ -202,25 +202,6 @@ let run cmd =
         read_normal all specifics
   in
   let () = Libyomu.Drawing.read_comics ~config pixel_mode archives () in
-  let () =
-    match err with
-    | true ->
-        Printf.fprintf stderr "Cannot read = %s\n%!"
-          Libyomu.App.yomu_config_file
-    | false ->
-        ()
-  in
-  let () =
-    match lines_errors with
-    | [] ->
-        ()
-    | _ :: _ as errors ->
-        List.iter
-          (Printf.fprintf stderr "Config file : %s : Error line %u\n%!"
-             Libyomu.App.yomu_config_file
-          )
-          errors
-  in
   ()
 
 let command = cmd run
