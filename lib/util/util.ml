@@ -43,11 +43,18 @@ end
 module FileSys = struct
   let create_folder ?(perm = 0o700) ~on_error folder =
     let to_path_string = folder in
-    match Sys.mkdir to_path_string perm with
-    | exception _ ->
-        Error on_error
-    | () ->
-        Ok folder
+    match Sys.file_exists to_path_string with
+    | true ->
+        Ok to_path_string
+    | false ->
+        let r =
+          match Sys.mkdir to_path_string perm with
+          | exception _ ->
+              Error on_error
+          | () ->
+              Ok folder
+        in
+        r
 
   let create_file ?(on_file = fun _ -> ()) ~on_error file =
     let to_file_path = file in
@@ -62,8 +69,10 @@ module FileSys = struct
   let rec rmrf path () =
     match Sys.is_directory path with
     | true ->
-        Sys.readdir path
-        |> Array.iter (fun name -> rmrf (Filename.concat path name) ());
+        let () =
+          Sys.readdir path
+          |> Array.iter (fun name -> rmrf (Filename.concat path name) ())
+        in
         Unix.rmdir path
     | false ->
         Sys.remove path
@@ -94,4 +103,54 @@ module AsciiString = struct
   let bold_sseq = "\u{001B}[1m"
   let bold_eseq = "\u{001B}[22m"
   let bold s = Printf.sprintf "%s%s%s" bold_sseq s bold_eseq
+end
+
+module Ulist = struct
+  let rec map_ok f = function
+    | [] ->
+        Result.ok []
+    | t :: q ->
+        let ( let* ) = Result.bind in
+        let* res = f t in
+        let* list = map_ok f q in
+        Result.ok @@ (res :: list)
+
+  let rec map_some f = function
+    | [] ->
+        Option.some []
+    | t :: q ->
+        let ( let* ) = Option.bind in
+        let* res = f t in
+        let* list = map_some f q in
+        Option.some @@ (res :: list)
+
+  let rec fold_some f acc = function
+    | [] ->
+        Option.some acc
+    | t :: q ->
+        let ( let* ) = Option.bind in
+        let* acc = f acc t in
+        fold_some f acc q
+
+  let rec fold_ok f acc = function
+    | [] ->
+        Result.ok acc
+    | t :: q ->
+        let ( let* ) = Result.bind in
+        let* acc = f acc t in
+        fold_ok f acc q
+end
+
+module Axe = struct
+  type t = AxeX | AxeY
+
+  let to_string ?(uppercase = true) elt =
+    let transform =
+      if uppercase then
+        String.capitalize_ascii
+      else
+        Fun.id
+    in
+    let s = match elt with AxeX -> "x" | AxeY -> "y" in
+    transform s
 end

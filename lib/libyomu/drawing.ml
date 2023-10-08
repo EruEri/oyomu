@@ -17,8 +17,6 @@
 
 open Cbindings
 
-type drawing_config = { keep_unzipped : bool }
-
 let debug_string content =
   Out_channel.with_open_text "debug" (fun oc -> Printf.fprintf oc "%s\n" content)
 
@@ -49,16 +47,16 @@ let draw_error_message message =
   in
   Termove.draw_string message
 
-let draw_image (winsize : Winsize.t) mode ~width ~height ~row_stride pixels =
+let draw_image ~width ~height ~row_stride (winsize : Winsize.t) mode key_config
+    pixels =
   let width = Int64.to_int width in
   let height = Int64.to_int height in
 
+  let x_scale = App.Config.x_scale mode key_config in
+  let y_scale = App.Config.y_scale mode key_config in
+
   let scaled_width, scaled_height =
-    match mode with
-    | Chafa.CHAFA_PIXEL_MODE_SIXELS ->
-        (sixel_x_fac * scale winsize.ws_col, sixel_y_fac * scale winsize.ws_row)
-    | _ ->
-        (scale winsize.ws_col, scale winsize.ws_row)
+    (scale ~fac:x_scale winsize.ws_col, scale ~fac:y_scale winsize.ws_row)
   in
   let config = Chafa.chafa_canvas_config_new () in
   let () = Chafa.chafa_canvas_config_set_pixel_mode config mode in
@@ -78,7 +76,7 @@ let draw_image (winsize : Winsize.t) mode ~width ~height ~row_stride pixels =
   let () = Chafa.chafa_canvas_config_unref config in
   ()
 
-let draw_page ~index comic_name mode (page : Comic.page) =
+let draw_page ~index comic_name mode key_config (page : Comic.page) =
   let winsize = Winsize.get () in
   let () = Termove.redraw_empty () in
   let () = Termove.set_cursor_at 0 0 in
@@ -101,7 +99,8 @@ let draw_page ~index comic_name mode (page : Comic.page) =
         let () =
           match exported with
           | true ->
-              draw_image winsize mode ~width ~height ~row_stride pixels
+              draw_image winsize mode key_config ~width ~height ~row_stride
+                pixels
           | false ->
               draw_error_message "cannot export"
         in
@@ -177,26 +176,26 @@ let read_movement ~parser () =
   let () = Termove.disable_canonic () in
   res
 
-let read_choice () =
+let read_choice key_config () =
   let len = 1 in
   let bytes = Bytes.create len in
   let _ = Unix.read Unix.stdin bytes 0 len in
   let c = Bytes.get bytes 0 in
   match c with
-  | c when c = App.KeyBindingConst.val_previous_page ->
+  | c when c = App.Config.previous_page key_config ->
       `Right
-  | c when c = App.KeyBindingConst.val_next_page ->
+  | c when c = App.Config.next_page key_config ->
       `Left
-  | c when c = App.KeyBindingConst.val_quit ->
+  | c when c = App.Config.quit key_config ->
       `Quit
-  | c when c = App.KeyBindingConst.val_goto_book ->
+  | c when c = App.Config.goto_book key_config ->
       read_movement ~parser:parse_book_movement ()
-  | c when c = App.KeyBindingConst.val_goto_page ->
+  | c when c = App.Config.goto_page key_config ->
       read_movement ~parser:parser_page_movement ()
   | _ ->
       `Ignore
 
-let read_page comic_name mode ignored index zipper =
+let read_page comic_name mode key_config ignored index zipper =
   let index = index + 1 in
   let (page : Comic.page option) = Zipper.top_left zipper in
   match page with
@@ -208,13 +207,13 @@ let read_page comic_name mode ignored index zipper =
         | true ->
             ()
         | false ->
-            let () = draw_page ~index comic_name mode page in
+            let () = draw_page ~index comic_name mode key_config page in
             ()
       in
-      let option = read_choice () in
+      let option = read_choice key_config () in
       option
 
-let read_item mode (item : ('a, Comic.named_archive) Either.t) =
+let read_item mode key_config (item : ('a, Comic.named_archive) Either.t) =
   let ( let* ) = Option.bind in
   let* (Comic.{ pages; name } as c) =
     match item with
@@ -228,7 +227,7 @@ let read_item mode (item : ('a, Comic.named_archive) Either.t) =
   in
 
   let z_pages = Zipper.of_list pages in
-  let res = Zipper.action 0 (read_page name mode) z_pages in
+  let res = Zipper.action 0 (read_page name mode key_config) z_pages in
   Some (c, res)
 
 let read_collection mode config =
@@ -239,14 +238,14 @@ let read_collection mode config =
           (zipper, `Left)
       | Some either_comic ->
           let zipper, res =
-            match read_item mode either_comic with
+            match read_item mode config either_comic with
             | None ->
                 (Zipper.remove_current zipper, `NoAction)
             | Some (comic, res) ->
                 let zipper =
                   match either_comic with
                   | Either.Right _ -> (
-                      match config.keep_unzipped with
+                      match App.Config.keep_unzipped config with
                       | true ->
                           Zipper.replace_current (Either.left comic) zipper
                       | false ->

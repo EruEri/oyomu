@@ -30,7 +30,7 @@ let pixels_modes =
 
 type t = {
   encrypted : bool;
-  keep_unzipped : bool;
+  keep_unzipped : bool option;
   pixel_mode : Cbindings.Chafa.pixel_mode;
   all : string list;
   specifics : (int * string) list;
@@ -180,7 +180,13 @@ let read_encrypted ~key all specifics =
 
 let run cmd =
   let { encrypted; keep_unzipped; all; specifics; pixel_mode } = cmd in
-  let config = Libyomu.Drawing.{ keep_unzipped } in
+  let (config, _lines_errors), _err =
+    match Libyomu.App.Config.parse ?keep_unzipped () with
+    | Ok c ->
+        (c, false)
+    | Error _ ->
+        ((Libyomu.App.Config.empty, []), true)
+  in
   let () = Cmdcommon.check_yomu_initialiaze () in
   let key_opt = Cmdcommon.ask_password_if_encrypted encrypted () in
   let specifics =
