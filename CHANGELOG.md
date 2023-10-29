@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# [0.2.2]
+- Randomize Iv in encrypted comics
+    - add option to create new random iv in ```oyomu collection``` (--randomize-iv)
+    - generate a random seed when calling the random iv function
+
 # [0.2.1]
 - [Use config file to change some behavior](https://github.com/EruEri/oyomu/pull/5)
 

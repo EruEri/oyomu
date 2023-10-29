@@ -71,6 +71,17 @@ module Syomu = struct
     let content = encrypt ~key syomurc () in
     Out_channel.with_open_bin where (fun oc -> output_string oc content)
 
+  (**
+    [randomize_iv syomurc] regenerate the [iv] for each comics in [syomurc]
+  *)
+  let randomize_iv syomurc =
+    let scomics =
+      List.map
+        (fun comic -> { comic with iv = Encryption.random_iv () })
+        syomurc.scomics
+    in
+    { scomics }
+
   let decrypt ~key () =
     let path = App.yomu_hidden_config in
     match Encryption.decrpty_file ~key ~iv:encryption_iv path () with
