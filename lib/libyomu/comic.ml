@@ -71,13 +71,34 @@ module Syomu = struct
     let content = encrypt ~key syomurc () in
     Out_channel.with_open_bin where (fun oc -> output_string oc content)
 
+  let re_encrypt ~old_iv ~new_iv ~key path =
+    let ( let* ) = Option.bind in
+    let bytes = Util.Io.content_filename path () in
+    let* file = Encryption.decrypt ~key ~iv:old_iv bytes () in
+    let _ = Encryption.encrypt ~where:path ~key ~iv:new_iv file () in
+    Some ()
+
   (**
     [randomize_iv syomurc] regenerate the [iv] for each comics in [syomurc]
   *)
-  let randomize_iv syomurc =
+  let randomize_iv ~key syomurc =
     let scomics =
       List.map
-        (fun comic -> { comic with iv = Encryption.random_iv () })
+        (fun comic ->
+          let path =
+            Filename.concat App.yomu_hidden_comics comic.encrypted_file_name
+          in
+          let new_iv = Encryption.random_iv () in
+          let comic =
+            match re_encrypt ~old_iv:comic.iv ~new_iv ~key path with
+            | Some () ->
+                { comic with iv = new_iv }
+            | None ->
+                let () = Printf.eprintf "Cannot randomize %s\n" path in
+                comic
+          in
+          comic
+        )
         syomurc.scomics
     in
     { scomics }

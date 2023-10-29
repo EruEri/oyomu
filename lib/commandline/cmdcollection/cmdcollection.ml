@@ -46,7 +46,7 @@ let run t =
             ()
         in
         let syomurc = Libyomu.Comic.Syomu.decrypt ~key () in
-        let syomurc = Libyomu.Comic.Syomu.randomize_iv syomurc in
+        let syomurc = Libyomu.Comic.Syomu.randomize_iv ~key syomurc in
         let _ = Libyomu.Comic.Syomu.encrypt ~key syomurc () in
         ()
   in

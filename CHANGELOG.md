@@ -1,6 +1,10 @@
 # CHANGELOG
 
+# [0.2.2-1]
+- [Re-encrypt file with the new iv](https://github.com/EruEri/oyomu/pull/8)
+
 # [0.2.2]
+## Dont' use, randomize-iv is broken
 - [Randomize Iv in encrypted comics](https://github.com/EruEri/oyomu/pull/7)
     - add option to create new random iv in ```oyomu collection``` (--randomize-iv)
     - generate a random seed when calling the random iv function

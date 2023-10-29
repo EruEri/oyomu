@@ -34,7 +34,8 @@ let comic_term =
     & info [ "n"; "name" ] ~docv:"COMIC_NAME" ~doc:"Name of the comic"
   )
 
-let encrypted_term = Arg.(value & flag & info [ "e"; "encrypt" ])
+let encrypted_term =
+  Arg.(value & flag & info ~doc:"Add comic to yomu encrypted" [ "e"; "encrypt" ])
 
 let existing_term =
   Arg.(
