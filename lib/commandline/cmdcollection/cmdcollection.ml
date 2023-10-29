@@ -20,6 +20,38 @@ open Cmdliner
 let name = "collection"
 let doc = "Manage Oyomu collection"
 
+type t = { randomize_iv : bool }
+
+let term_random_iv =
+  Arg.(
+    value & flag
+    & info ~doc:"Randomize the initialization vector of the encrypted comics"
+        [ "randomize-iv" ]
+  )
+
+let term_cmd run =
+  let combine randomize_iv = run { randomize_iv } in
+  Term.(const combine $ term_random_iv)
+
+let run t =
+  let { randomize_iv } = t in
+  let () =
+    match randomize_iv with
+    | false ->
+        ()
+    | true ->
+        let () = Cmdcommon.check_yomu_hidden () in
+        let key =
+          Libyomu.Input.ask_password_encrypted ~prompt:Cmdcommon.password_prompt
+            ()
+        in
+        let syomurc = Libyomu.Comic.Syomu.decrypt ~key () in
+        let syomurc = Libyomu.Comic.Syomu.randomize_iv syomurc in
+        let _ = Libyomu.Comic.Syomu.encrypt ~key syomurc () in
+        ()
+  in
+  ()
+
 let man =
   [
     `S Manpage.s_description;
@@ -39,5 +71,5 @@ let subcommands =
     Crename.command;
   ]
 
-let parse () = Cmd.group root_info subcommands
+let parse () = Cmd.group ~default:(term_cmd run) root_info subcommands
 let command = parse ()
