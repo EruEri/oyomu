@@ -15,13 +15,11 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-module App = App
-module Error = Error
-module Comic = Comic
-module Ccallback = Ccallback
-module Drawing = Drawing
-module Collection = Collection
-module Init = Initialization
-module Input = Input
-module Encryption = Encryption
-module Pixel = Pixel
+let pixels_modes =
+  let open Cbindings.Chafa in
+  [
+    ("symbols", CHAFA_PIXEL_MODE_SYMBOLS);
+    ("sixels", CHAFA_PIXEL_MODE_SIXELS);
+    ("kitty", CHAFA_PIXEL_MODE_KITTY);
+    ("iterm", CHAFA_PIXEL_MODE_ITERM2);
+  ]

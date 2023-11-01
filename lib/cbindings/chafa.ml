@@ -69,17 +69,12 @@ external chafa_canvas_draw_all_pixels :
   = "caml_chafa_canvas_draw_all_pixels_bytecode"
     "caml_chafa_canvas_draw_all_pixels"
 
-
+external chafa_calc_canvas_geometry :
+  width:int -> height:int -> zoom:bool -> stretch:bool -> float -> int * int
+  = "caml_chafa_calc_canvas_geometry"
 (**
     
 *)
-external chafa_calc_canvas_geometry:
-    width:int ->
-    height:int ->
-    zoom:bool ->
-    stretch:bool ->
-    float -> int * int = "caml_chafa_calc_canvas_geometry"
-
 
 external chafa_canvas_print : ?term_info:term_info -> canvas -> string
   = "caml_chafa_canvas_print"
