@@ -60,6 +60,12 @@ let draw_image ~width ~height ~row_stride (winsize : Winsize.t) mode key_config
   in
   let config = Chafa.chafa_canvas_config_new () in
   let () = Chafa.chafa_canvas_config_set_pixel_mode config mode in
+  let () = match mode with
+    | Chafa.CHAFA_PIXEL_MODE_KITTY | Chafa.CHAFA_PIXEL_MODE_ITERM2 -> 
+      let () = Chafa.chafa_canvas_config_set_cell_geometry ~width:12 ~height:24 config in
+      ()
+    | Chafa.CHAFA_PIXEL_MODE_SIXELS | CHAFA_PIXEL_MODE_SYMBOLS -> ()
+  in
   let () =
     Chafa.chafa_canvas_config_set_geometry ~width:scaled_width
       ~height:scaled_height config

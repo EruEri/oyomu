@@ -16,6 +16,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include <chafa.h>
+#include <stdio.h>
 #include "caml/memory.h"
 #include "caml/misc.h"
 #include "caml/mlvalues.h"
@@ -64,17 +65,42 @@ CAMLprim value caml_chafa_canvas_config_set_pixel_mode(value config, value pixel
 CAMLprim value caml_chafa_canvas_config_set_geometry(value config, value width, value height) {
     CAMLparam3(config, width, height);
     ChafaCanvasConfig* cconfig = ChafaCanvasConfig_val(config);
+    // chafa_canvas_config_set_canvas_mode(cconfig, CHAFA_CANVAS_MODE_TRUECOLOR);
     int cwidth = Int_val(width);
     int cheight = Int_val(height);
     chafa_canvas_config_set_geometry(cconfig, cwidth, cheight);
     CAMLreturn(Val_unit);
 }
 
+CAMLprim value caml_chafa_calc_canvas_geometry(
+        value caml_width, value caml_height, value caml_zoom,
+        value caml_stretch, value caml_font_ration
+    ) {
+        CAMLparam5(caml_width, caml_height, caml_zoom, caml_stretch, caml_font_ration);
+        CAMLlocal3(tuple, caml_calc_w, caml_calc_h);
+        tuple = caml_alloc_tuple(2);
+        int width = Int_val(caml_width);
+        int height = Int_val(caml_height);
+        gboolean zoom = Bool_val(caml_zoom);
+        gboolean stretch = Bool_val(caml_stretch);
+        double ration = Double_val(caml_font_ration);
+        int calc_width = width;
+        int calc_height = height;
+        chafa_calc_canvas_geometry(width, height,&calc_width, &calc_height, ration, zoom, stretch);
+        caml_calc_w = Val_int(calc_width);
+        caml_calc_h = Val_int(calc_height);
+        Store_field(tuple, 0, caml_calc_w);
+        Store_field(tuple, 1, caml_calc_h);
+        CAMLreturn(tuple);
+    }
+
 CAMLprim value caml_chafa_canvas_config_set_cell_geometry(value config, value width, value height) {
     CAMLparam3(config, width, height);
     ChafaCanvasConfig* cconfig = ChafaCanvasConfig_val(config);
+    chafa_canvas_config_set_canvas_mode(cconfig, CHAFA_CANVAS_MODE_TRUECOLOR);
     int cwidth = Int_val(width);
     int cheight = Int_val(height);
+    // chafa_calc_canvas_geometry(cwidth, cheight, &dest_width_inout, &dest_height_inout, 0.5, 1, 1);
     chafa_canvas_config_set_cell_geometry(cconfig, cwidth, cheight);
     CAMLreturn(Val_unit);
 }
