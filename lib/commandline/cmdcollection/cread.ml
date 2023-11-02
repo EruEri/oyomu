@@ -102,64 +102,26 @@ let cmd run =
   Cmd.v info (cmd_term run)
 
 let read_normal all specifics =
-  let ( // ) = Libyomu.App.( // ) in
+  (* let ( // ) = Libyomu.App.( // ) in *)
   let archives =
-    all
-    |> List.filter_map (fun name ->
-           let path = Libyomu.App.yomu_comics // name in
-           match Sys.file_exists path with
-           | false ->
-               None
-           | true ->
-               let dir_content = Sys.readdir path in
-               let ldir_content = Array.to_list dir_content in
-               let ldir_content =
-                 List.filter_map (Cmdcommon.filter_dotfile ~path) ldir_content
-               in
-               let archive_paths =
-                 ldir_content
-                 |> List.map (fun file ->
-                        let archive_path = path // file in
-                        let name = Printf.sprintf "%s-%s" name file in
-                        Libyomu.Item.{ archive_path; name }
-                    )
-                 |> List.sort Libyomu.NamedArchive.compare_named_archive
-               in
-               Some archive_paths
-       )
+    List.map
+      (fun name ->
+        let regex = Str.regexp name in
+        Libyomu.Collection.Normal.matchesp regex
+      )
+      all
   in
 
   let archives_spe =
-    specifics
-    |> List.filter_map (fun (index, name) ->
-           let path = Libyomu.App.yomu_comics // name in
-           match Sys.file_exists path with
-           | false ->
-               None
-           | true ->
-               let dir_content = Sys.readdir path in
-               let ldir_content = Array.to_list dir_content in
-               let ldir_content = List.sort String.compare ldir_content in
-               let content =
-                 ldir_content
-                 |> List.filter_map (fun file ->
-                        match
-                          int_of_string_opt @@ Filename.remove_extension file
-                        with
-                        | Some n when n = index ->
-                            let name = Printf.sprintf "%s-%s" name file in
-                            let archive_path = path // file in
-                            let ar = Libyomu.Item.{ archive_path; name } in
-                            Option.some ar
-                        | None | Some _ ->
-                            None
-                    )
-               in
-               Some content
-       )
+    List.map
+      (fun (index, name) ->
+        let regex = Str.regexp name in
+        Libyomu.Collection.Normal.matchesip index regex
+      )
+      specifics
   in
 
-  archives @ archives_spe |> List.flatten
+  List.flatten @@ archives @ archives_spe
 
 let read_encrypted ~key all specifics =
   let syomurc = Libyomu.Syomu.decrypt ~key () in
