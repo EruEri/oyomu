@@ -72,6 +72,87 @@ module Normal = struct
         files
     in
     ()
+
+  (**
+      [named_archive_of_name root comic_name file_name]  
+    *)
+  let named_archive_of_name root comic_name file_name =
+    let ( // ) = Filename.concat in
+    let archive_path = root // comic_name // file_name in
+    let name = Printf.sprintf "%s-%s" comic_name file_name in
+    Item.{ archive_path; name }
+
+  let yomu_comics () = Array.to_list @@ Sys.readdir App.yomu_comics
+
+  (**
+        [read_comic_dir name] read the content of [Libyomu.App.yomu_comics/name]
+    *)
+  let read_comic_dir name =
+    let full_path = Filename.concat App.yomu_comics name in
+    List.filter (Fun.negate @@ String.starts_with ~prefix:".")
+    @@ Array.to_list @@ Sys.readdir full_path
+
+  (**
+      [matchesp regex s] matches the the comics with the name [name] and converts all comics to 
+      [Item.named_archive]. If [regex], [name] is treated as a regular expression
+  *)
+  let matchesp regex s =
+    let regexp =
+      match regex with true -> Str.regexp s | false -> Str.regexp_string s
+    in
+    yomu_comics ()
+    |> List.filter_map (fun name ->
+           match Str.string_match regexp name 0 with
+           | true when not @@ String.starts_with ~prefix:"." name ->
+               let elts = read_comic_dir name in
+               Option.some
+               @@ List.sort NamedArchive.compare_named_archive
+               @@ List.map (named_archive_of_name App.yomu_comics name) elts
+           | false | true ->
+               None
+       )
+    |> List.flatten
+
+  (**
+      [matchesip regex index name] matches the the comics with the name [name] and its index [index] and converts all comics to 
+      [Item.named_archive]. If [regex], [name] is treated as a regular expression
+  *)
+  let matchesip regex index name =
+    let regexp =
+      match regex with
+      | true ->
+          Str.regexp name
+      | false ->
+          Str.regexp_string name
+    in
+    let ( // ) = Filename.concat in
+    yomu_comics ()
+    |> List.filter_map (fun name ->
+           match Str.string_match regexp name 0 with
+           | true when not @@ String.starts_with ~prefix:"." name ->
+               Some (name, read_comic_dir name)
+           | false | true ->
+               None
+       )
+    |> List.map (fun (comic_name, elts) ->
+           let archive_path =
+             List.filter_map
+               (fun file ->
+                 match int_of_string_opt @@ Filename.remove_extension file with
+                 | Some n when n = index ->
+                     let path = App.yomu_comics // comic_name in
+                     let name = Printf.sprintf "%s-%s" comic_name file in
+                     let archive_path = path // file in
+                     let ar = Item.{ archive_path; name } in
+                     Option.some ar
+                 | None | Some _ ->
+                     None
+               )
+               elts
+           in
+           archive_path
+       )
+    |> List.flatten
 end
 
 module Encrypted = struct

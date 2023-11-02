@@ -82,8 +82,8 @@ let print_error message (sitem : Libyomu.Item.syomu_item) =
 
 let decrypt ~quiet ~outdir ~key all specifics =
   let syomurc = Libyomu.Syomu.decrypt ~key () in
-  let filtered = Libyomu.Syomu.filter_series all syomurc in
-  let fspecifis = Libyomu.Syomu.filter_vseries specifics syomurc in
+  let filtered = Libyomu.Syomu.filter_series false all syomurc in
+  let fspecifis = Libyomu.Syomu.filter_vseries false specifics syomurc in
   let syomurc = Libyomu.Syomu.union filtered fspecifis in
   let () =
     syomurc.scomics

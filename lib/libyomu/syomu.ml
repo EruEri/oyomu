@@ -98,10 +98,24 @@ let excludes_vseries vsereis syomurc =
   in
   ({ scomics }, exclu)
 
-let filter_series series syomurc =
-  {
-    scomics = syomurc.scomics |> List.filter (fun s -> List.mem s.serie series);
-  }
+(**
+  [filter_series regex series syomurc] filters [syomurc] by a list of series [series] and match its regex if [regex]
+*)
+let filter_series regex series syomurc =
+  let matches item serie =
+    let r =
+      match regex with
+      | true ->
+          Str.regexp serie
+      | false ->
+          Str.regexp_string serie
+    in
+    Str.string_match r item.serie 0
+  in
+  let scomics =
+    List.filter (fun item -> List.exists (matches item) series) syomurc.scomics
+  in
+  { scomics }
 
 let rename_serie oldname newname syomurc =
   {
@@ -116,10 +130,19 @@ let rename_serie oldname newname syomurc =
          );
   }
 
-let filter_vseries vsereis syomurc =
+let filter_vseries regex series syomurc =
+  let matches item (index, serie) =
+    let r =
+      match regex with
+      | true ->
+          Str.regexp serie
+      | false ->
+          Str.regexp_string serie
+    in
+    item.volume = index && Str.string_match r item.serie 0
+  in
   let scomics =
-    syomurc.scomics
-    |> List.filter (fun s -> List.mem (s.volume, s.serie) vsereis)
+    List.filter (fun item -> List.exists (matches item) series) syomurc.scomics
   in
   { scomics }
 
