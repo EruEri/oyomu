@@ -18,15 +18,7 @@
 open Cmdliner
 
 let name = "read"
-
-let pixels_modes =
-  let open Cbindings.Chafa in
-  [
-    ("symbols", CHAFA_PIXEL_MODE_SYMBOLS);
-    ("sixels", CHAFA_PIXEL_MODE_SIXELS);
-    ("kitty", CHAFA_PIXEL_MODE_KITTY);
-    ("iterm", CHAFA_PIXEL_MODE_ITERM2);
-  ]
+let pixels_modes = Libyomu.Pixel.pixels_modes
 
 type t = {
   encrypted : bool;
@@ -129,9 +121,9 @@ let read_normal all specifics =
                  |> List.map (fun file ->
                         let archive_path = path // file in
                         let name = Printf.sprintf "%s-%s" name file in
-                        Libyomu.Comic.{ archive_path; name }
+                        Libyomu.Item.{ archive_path; name }
                     )
-                 |> List.sort Libyomu.Comic.NamedArchive.compare_named_archive
+                 |> List.sort Libyomu.NamedArchive.compare_named_archive
                in
                Some archive_paths
        )
@@ -157,7 +149,7 @@ let read_normal all specifics =
                         | Some n when n = index ->
                             let name = Printf.sprintf "%s-%s" name file in
                             let archive_path = path // file in
-                            let ar = Libyomu.Comic.{ archive_path; name } in
+                            let ar = Libyomu.Item.{ archive_path; name } in
                             Option.some ar
                         | None | Some _ ->
                             None
@@ -170,11 +162,11 @@ let read_normal all specifics =
   archives @ archives_spe |> List.flatten
 
 let read_encrypted ~key all specifics =
-  let syomurc = Libyomu.Comic.Syomu.decrypt ~key () in
-  let filtered = Libyomu.Comic.Syomu.filter_series all syomurc in
-  let fspecifis = Libyomu.Comic.Syomu.filter_vseries specifics syomurc in
-  let syomurc = Libyomu.Comic.Syomu.union filtered fspecifis in
-  let earchives = Libyomu.Comic.Syomu.decrypt_all ~key syomurc in
+  let syomurc = Libyomu.Syomu.decrypt ~key () in
+  let filtered = Libyomu.Syomu.filter_series all syomurc in
+  let fspecifis = Libyomu.Syomu.filter_vseries specifics syomurc in
+  let syomurc = Libyomu.Syomu.union filtered fspecifis in
+  let earchives = Libyomu.Syomu.decrypt_all ~key syomurc in
   let narchives = read_normal all specifics in
   narchives @ earchives
 

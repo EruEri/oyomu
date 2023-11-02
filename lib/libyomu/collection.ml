@@ -76,14 +76,14 @@ end
 
 module Encrypted = struct
   let check_serie_exist comic_name syomurc () =
-    match Comic.Syomu.serie_exists comic_name syomurc with
+    match Syomu.serie_exists comic_name syomurc with
     | true ->
         ()
     | false ->
         failwith "S: Serie doesnt exist"
 
   let check_duplicate comic_name volume syomurc () =
-    match Comic.Syomu.exists volume comic_name syomurc with
+    match Syomu.exists volume comic_name syomurc with
     | false ->
         ()
     | true ->
@@ -115,17 +115,17 @@ module Encrypted = struct
     let () = check_duplicate comic_name index syomurc () in
     let name, extension = dname comic_name index comic_archive in
     let digest_name = Util.Hash.hash_name ~name ~extension in
-    let item = Comic.Syomu.create_item digest_name comic_name index in
+    let item = Syomu.create_item digest_name comic_name index in
     let content = Util.Io.content_filename comic_archive () in
     let content_outfile = App.yomu_hidden_comics // digest_name in
     let _encrypted_content =
       Encryption.encrypt ~where:content_outfile ~key ~iv:item.iv content ()
     in
-    let syomurc = Comic.Syomu.add item syomurc in
+    let syomurc = Syomu.add item syomurc in
     syomurc
 
   let add_multiples ~key ~existing ~comic_name indexed_archives =
-    let syomurc = Comic.Syomu.decrypt ~key () in
+    let syomurc = Syomu.decrypt ~key () in
     let syomurc =
       indexed_archives
       |> List.fold_left
@@ -134,7 +134,7 @@ module Encrypted = struct
            )
            syomurc
     in
-    let _ = Comic.Syomu.encrypt ~key syomurc () in
+    let _ = Syomu.encrypt ~key syomurc () in
     ()
 end
 

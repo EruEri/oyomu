@@ -17,10 +17,12 @@
 
 module App = App
 module Error = Error
-module Comic = Comic
-module Ccallback = Ccallback
+module Syomu = Syomu
+module NamedArchive = NamedArchive
+module Item = Item
 module Drawing = Drawing
 module Collection = Collection
 module Init = Initialization
 module Input = Input
 module Encryption = Encryption
+module Pixel = Pixel

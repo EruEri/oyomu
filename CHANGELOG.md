@@ -1,5 +1,8 @@
 # CHANGELOG
 
+# [Unrealeased]
+- [Improve Kitty, iTerm render]()
+
 # [0.2.2-1]
 - [Re-encrypt file with the new iv](https://github.com/EruEri/oyomu/pull/8)
 

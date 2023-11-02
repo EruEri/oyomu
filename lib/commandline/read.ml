@@ -18,15 +18,7 @@
 open Cmdliner
 
 let name = "read"
-
-let pixels_modes =
-  let open Cbindings.Chafa in
-  [
-    ("symbols", CHAFA_PIXEL_MODE_SYMBOLS);
-    ("sixels", CHAFA_PIXEL_MODE_SIXELS);
-    ("kitty", CHAFA_PIXEL_MODE_KITTY);
-    ("iterm", CHAFA_PIXEL_MODE_ITERM2);
-  ]
+let pixels_modes = Libyomu.Pixel.pixels_modes
 
 type t = {
   mode : Cbindings.Chafa.pixel_mode;
@@ -71,7 +63,7 @@ let cmd run =
 let archive_of_file file =
   let archive_path = file in
   let name = Filename.remove_extension @@ Filename.basename @@ file in
-  Libyomu.Comic.{ archive_path; name }
+  Libyomu.Item.{ archive_path; name }
 
 let run cmd_read =
   let { files; keep_unzipped; mode } = cmd_read in
