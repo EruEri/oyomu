@@ -23,6 +23,7 @@ let pixels_modes = Libyomu.Pixel.pixels_modes
 type t = {
   encrypted : bool;
   keep_unzipped : bool option;
+  regex : bool;
   pixel_mode : Cbindings.Chafa.pixel_mode;
   all : string list;
   specifics : (int * string) list;
@@ -38,6 +39,9 @@ let pixel_term =
           ^ doc_alts_enum ~quoted:true pixels_modes
           )
   )
+
+let regex_term =
+  Arg.(value & flag & info [ "r" ] ~doc:"Treat comic name as a regex")
 
 let encrypted_term =
   Arg.(
@@ -63,12 +67,12 @@ let specifics =
   )
 
 let cmd_term run =
-  let combine encrypted keep_unzipped pixel_mode all specifics =
-    run @@ { encrypted; keep_unzipped; pixel_mode; all; specifics }
+  let combine encrypted keep_unzipped regex pixel_mode all specifics =
+    run @@ { encrypted; keep_unzipped; regex; pixel_mode; all; specifics }
   in
   Term.(
-    const combine $ encrypted_term $ Cmdcommon.keep_unzipped_term $ pixel_term
-    $ all_term $ specifics
+    const combine $ encrypted_term $ Cmdcommon.keep_unzipped_term $ regex_term
+    $ pixel_term $ all_term $ specifics
   )
 
 let man_example =
@@ -82,6 +86,7 @@ let man_example =
       ( "To read the first volume from the serie $(b,ComicB)",
         "$(iname) 1.ComicB"
       );
+    `I ("To read the first volume of all series", "$(iname) -r 1..");
     `P
       "To read comics which are encrypted, you should also provide the $(b,-e) \
        flag";
@@ -101,39 +106,28 @@ let cmd run =
   let info = Cmd.info name ~doc ~man in
   Cmd.v info (cmd_term run)
 
-let read_normal all specifics =
-  (* let ( // ) = Libyomu.App.( // ) in *)
-  let archives =
-    List.map
-      (fun name ->
-        let regex = Str.regexp name in
-        Libyomu.Collection.Normal.matchesp regex
-      )
-      all
-  in
+let read_normal regex all specifics =
+  let archives = List.map (Libyomu.Collection.Normal.matchesp regex) all in
 
   let archives_spe =
     List.map
-      (fun (index, name) ->
-        let regex = Str.regexp name in
-        Libyomu.Collection.Normal.matchesip index regex
-      )
+      (fun (index, name) -> Libyomu.Collection.Normal.matchesip regex index name)
       specifics
   in
 
   List.flatten @@ archives @ archives_spe
 
-let read_encrypted ~key all specifics =
+let read_encrypted ~key regex all specifics =
   let syomurc = Libyomu.Syomu.decrypt ~key () in
-  let filtered = Libyomu.Syomu.filter_series all syomurc in
-  let fspecifis = Libyomu.Syomu.filter_vseries specifics syomurc in
+  let filtered = Libyomu.Syomu.filter_series regex all syomurc in
+  let fspecifis = Libyomu.Syomu.filter_vseries regex specifics syomurc in
   let syomurc = Libyomu.Syomu.union filtered fspecifis in
   let earchives = Libyomu.Syomu.decrypt_all ~key syomurc in
-  let narchives = read_normal all specifics in
+  let narchives = read_normal regex all specifics in
   narchives @ earchives
 
 let run cmd =
-  let { encrypted; keep_unzipped; all; specifics; pixel_mode } = cmd in
+  let { encrypted; keep_unzipped; regex; all; specifics; pixel_mode } = cmd in
   let (config, _lines_errors), _err =
     match Libyomu.App.Config.parse ?keep_unzipped () with
     | Ok c ->
@@ -149,11 +143,11 @@ let run cmd =
   let archives =
     match key_opt with
     | Some key ->
-        let ars = read_encrypted ~key all specifics in
+        let ars = read_encrypted ~key regex all specifics in
         let () = Gc.compact () in
         ars
     | None ->
-        read_normal all specifics
+        read_normal regex all specifics
   in
   let () = Libyomu.Drawing.read_comics ~config pixel_mode archives () in
   ()

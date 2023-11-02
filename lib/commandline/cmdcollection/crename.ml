@@ -126,7 +126,9 @@ let merge_yomu ~old_name ~new_name ~oldyomu ~targetyomu syomurc =
 
 let rename_encrypted merge ~key ~old_name ~new_name =
   let syomurc = Libyomu.Syomu.decrypt ~key () in
-  let old_series_syomu = Libyomu.Syomu.filter_series [ old_name ] syomurc in
+  let old_series_syomu =
+    Libyomu.Syomu.filter_series false [ old_name ] syomurc
+  in
   let () =
     match old_series_syomu.scomics with
     | [] ->
@@ -135,7 +137,9 @@ let rename_encrypted merge ~key ~old_name ~new_name =
     | _ :: _ ->
         ()
   in
-  let new_series_syomu = Libyomu.Syomu.filter_series [ new_name ] syomurc in
+  let new_series_syomu =
+    Libyomu.Syomu.filter_series false [ new_name ] syomurc
+  in
   let new_syomu =
     match new_series_syomu.scomics with
     | [] ->

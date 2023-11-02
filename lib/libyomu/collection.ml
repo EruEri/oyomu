@@ -93,10 +93,13 @@ module Normal = struct
     @@ Array.to_list @@ Sys.readdir full_path
 
   (**
-      [matchesp regexp] matches the the comics with the regex [regexp] and converts all comics to 
-      [Item.named_archive]
+      [matchesp regex s] matches the the comics with the name [name] and converts all comics to 
+      [Item.named_archive]. If [regex], [name] is treated as a regular expression
   *)
-  let matchesp regexp =
+  let matchesp regex s =
+    let regexp =
+      match regex with true -> Str.regexp s | false -> Str.regexp_string s
+    in
     yomu_comics ()
     |> List.filter_map (fun name ->
            match Str.string_match regexp name 0 with
@@ -111,10 +114,17 @@ module Normal = struct
     |> List.flatten
 
   (**
-      [matchesip index regexp] matches the the comics with the regex [regexp] and its index [index] and converts all comics to 
-      [Item.named_archive]
+      [matchesip regex index name] matches the the comics with the name [name] and its index [index] and converts all comics to 
+      [Item.named_archive]. If [regex], [name] is treated as a regular expression
   *)
-  let matchesip index regexp =
+  let matchesip regex index name =
+    let regexp =
+      match regex with
+      | true ->
+          Str.regexp name
+      | false ->
+          Str.regexp_string name
+    in
     let ( // ) = Filename.concat in
     yomu_comics ()
     |> List.filter_map (fun name ->
