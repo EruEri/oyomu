@@ -26,6 +26,8 @@ let hidden_folder_name = ".scomics"
 let hidden_config_name = ".syomurc"
 let config_file_name = "yomurc"
 let yomu_share = xdg_data // yomu_name
+
+(** [$XDG_DATA_HOME/share/yomu/comics/] *)
 let yomu_comics = yomu_share // comics_folder_name
 
 (** [$XDG_DATA_HOME/share/yomu/.scomics/] *)

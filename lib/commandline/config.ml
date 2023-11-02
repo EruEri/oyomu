@@ -93,26 +93,36 @@ let goto_book_term =
           "Character that should be press if you want to go to a specific book"
   )
 
+let spm = "PIXEL_MODE"
+
 let x_scale_term =
   let doc =
-    Printf.sprintf "Percentage with each image is scaled on x (default: %u)"
+    Printf.sprintf
+      "%s : %s.\n      Percentage with each image is scaled on x (default: %u)"
+      spm
+      (Arg.doc_alts_enum Libyomu.Pixel.pixels_modes)
       Libyomu.App.Config.default_x_scale
   in
+  let docv = Printf.sprintf "%s=PERCENT" spm in
   Arg.(
     value
     & opt (some (t2 ~sep:'=' (enum pixels_modes) int)) None
-    & info [ "x-scale" ] ~docv:"PERCENT" ~doc
+    & info [ "x-scale" ] ~docv ~doc
   )
 
 let y_scale_term =
   let doc =
-    Printf.sprintf "Percentage with each image is scaled on y (default: %u)"
+    Printf.sprintf
+      "%s : %s.\n      Percentage with each image is scaled on y (default: %u)"
+      spm
+      (Arg.doc_alts_enum Libyomu.Pixel.pixels_modes)
       Libyomu.App.Config.default_y_scale
   in
+  let docv = Printf.sprintf "%s=PERCENT" spm in
   Arg.(
     value
     & opt (some (t2 ~sep:'=' (enum pixels_modes) int)) None
-    & info [ "y-scale" ] ~docv:"PERCENT" ~doc
+    & info [ "y-scale" ] ~docv ~doc
   )
 
 let cmd_term run =

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# [0.3.0]
+- [Collection read regex name](https://github.com/EruEri/oyomu/pull/10)
+- [Improve Kitty, iTerm render](https://github.com/EruEri/oyomu/pull/9)
+
 # [0.2.2-1]
 - [Re-encrypt file with the new iv](https://github.com/EruEri/oyomu/pull/8)
 

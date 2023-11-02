@@ -15,61 +15,21 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-open Cmdliner
+type syomu_item = {
+  iv : string;
+  encrypted_file_name : string;
+  serie : string;
+  volume : int;
+}
+[@@deriving yojson]
 
-let name = "collection"
-let doc = "Manage Oyomu collection"
+type syomurc = { scomics : syomu_item list } [@@deriving yojson]
+type page = { data : string }
+type comic = { name : string; pages : page list }
 
-type t = { randomize_iv : bool }
+type reading_item = (comic, string) Either.t
+(** Either an unzip comic or it archive path *)
 
-let term_random_iv =
-  Arg.(
-    value & flag
-    & info ~doc:"Randomize the initialization vector of the encrypted comics"
-        [ "randomize-iv" ]
-  )
-
-let term_cmd run =
-  let combine randomize_iv = run { randomize_iv } in
-  Term.(const combine $ term_random_iv)
-
-let run t =
-  let { randomize_iv } = t in
-  let () =
-    match randomize_iv with
-    | false ->
-        ()
-    | true ->
-        let () = Cmdcommon.check_yomu_hidden () in
-        let key =
-          Libyomu.Input.ask_password_encrypted ~prompt:Cmdcommon.password_prompt
-            ()
-        in
-        let syomurc = Libyomu.Syomu.decrypt ~key () in
-        let syomurc = Libyomu.Syomu.randomize_iv ~key syomurc in
-        let _ = Libyomu.Syomu.encrypt ~key syomurc () in
-        ()
-  in
-  ()
-
-let man =
-  [
-    `S Manpage.s_description;
-    `P "$(iname) allows you to manager and read your comic collection";
-  ]
-
-let root_info = Cmd.info name ~doc ~man
-
-let subcommands =
-  [
-    Cadd.command;
-    Cread.command;
-    Clist.command;
-    Cdelete.command;
-    Cinit.command;
-    Cdecrypt.command;
-    Crename.command;
-  ]
-
-let parse () = Cmd.group ~default:(term_cmd run) root_info subcommands
-let command = parse ()
+type named_archive = { name : string; archive_path : string }
+type reading_collection = reading_item list
+type collection = comic list

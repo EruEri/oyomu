@@ -105,6 +105,13 @@ module AsciiString = struct
   let bold s = Printf.sprintf "%s%s%s" bold_sseq s bold_eseq
 end
 
+module UString = struct
+  let keep_n n s =
+    let l = String.length s in
+    let l = min n l in
+    String.sub s 0 l
+end
+
 module Ulist = struct
   let rec map_ok f = function
     | [] ->

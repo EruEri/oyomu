@@ -15,7 +15,15 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-let register_callback () =
-  let () = Callback.register "c_comic_of_zip" Comic.CZip.comic_of_zip in
-  let () = Callback.register "c_list_len" List.length in
-  ()
+open Item
+
+let compare_named_archive lhs rhs =
+  let ( <=> ) = compare in
+  let ( >== ) = Option.bind in
+  let head_opt = function [] -> None | t :: _ -> Some t in
+  let int_name { archive_path = _; name } =
+    name |> Filename.basename |> Filename.remove_extension
+    |> String.split_on_char '-' |> List.rev |> head_opt >== int_of_string_opt
+    |> Option.value ~default:1
+  in
+  int_name lhs <=> int_name rhs

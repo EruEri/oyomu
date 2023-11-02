@@ -77,19 +77,19 @@ let cmd run =
   let info = Cmd.info name ~doc ~man in
   Cmd.v info (cmd_term run)
 
-let print_error message (sitem : Libyomu.Comic.syomu_item) =
+let print_error message (sitem : Libyomu.Item.syomu_item) =
   Printf.eprintf "Error: Vol-%u, %s:\n   %s\n" sitem.volume sitem.serie message
 
 let decrypt ~quiet ~outdir ~key all specifics =
-  let syomurc = Libyomu.Comic.Syomu.decrypt ~key () in
-  let filtered = Libyomu.Comic.Syomu.filter_series all syomurc in
-  let fspecifis = Libyomu.Comic.Syomu.filter_vseries specifics syomurc in
-  let syomurc = Libyomu.Comic.Syomu.union filtered fspecifis in
+  let syomurc = Libyomu.Syomu.decrypt ~key () in
+  let filtered = Libyomu.Syomu.filter_series false all syomurc in
+  let fspecifis = Libyomu.Syomu.filter_vseries false specifics syomurc in
+  let syomurc = Libyomu.Syomu.union filtered fspecifis in
   let () =
     syomurc.scomics
     |> List.iter
        @@ fun sitem ->
-       let open Libyomu.Comic in
+       let open Libyomu.Item in
        let ( // ) = Libyomu.App.( // ) in
        let encrypted_path =
          Libyomu.App.yomu_hidden_comics // sitem.encrypted_file_name
