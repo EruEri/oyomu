@@ -33,12 +33,6 @@ let nb_channel = 4L
 let base_fac = 90
 let scale ?(fac = base_fac) n = n * fac / 100
 
-let sixel_facs =
-  match Cbindings.OsInfo.macos with true -> (2, 4) | false -> (1, 2)
-
-let sixel_x_fac = fst sixel_facs
-let sixel_y_fac = snd sixel_facs
-
 let draw_error_message message =
   let w = Winsize.get () in
   let message_len = String.length message in
