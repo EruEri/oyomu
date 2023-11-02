@@ -15,61 +15,39 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-open Cmdliner
+(* treat string as byte vector *)
+(* type data = string *)
 
-let name = "collection"
-let doc = "Manage Oyomu collection"
+open Item
 
-type t = { randomize_iv : bool }
-
-let term_random_iv =
-  Arg.(
-    value & flag
-    & info ~doc:"Randomize the initialization vector of the encrypted comics"
-        [ "randomize-iv" ]
-  )
-
-let term_cmd run =
-  let combine randomize_iv = run { randomize_iv } in
-  Term.(const combine $ term_random_iv)
-
-let run t =
-  let { randomize_iv } = t in
-  let () =
-    match randomize_iv with
-    | false ->
-        ()
-    | true ->
-        let () = Cmdcommon.check_yomu_hidden () in
-        let key =
-          Libyomu.Input.ask_password_encrypted ~prompt:Cmdcommon.password_prompt
-            ()
-        in
-        let syomurc = Libyomu.Syomu.decrypt ~key () in
-        let syomurc = Libyomu.Syomu.randomize_iv ~key syomurc in
-        let _ = Libyomu.Syomu.encrypt ~key syomurc () in
-        ()
-  in
-  ()
-
-let man =
-  [
-    `S Manpage.s_description;
-    `P "$(iname) allows you to manager and read your comic collection";
-  ]
-
-let root_info = Cmd.info name ~doc ~man
-
-let subcommands =
-  [
-    Cadd.command;
-    Cread.command;
-    Clist.command;
-    Cdelete.command;
-    Cinit.command;
-    Cdecrypt.command;
-    Crename.command;
-  ]
-
-let parse () = Cmd.group ~default:(term_cmd run) root_info subcommands
-let command = parse ()
+let comic_of_zip archive =
+  try
+    let zip = Zip.open_in archive in
+    let entry = Zip.entries zip in
+    let pages =
+      entry
+      |> List.map (fun entry ->
+             let tmp_file, outchan =
+               Filename.open_temp_file
+                 (Filename.basename entry.Zip.filename)
+                 App.tmp_extension
+             in
+             let () = prerr_endline entry.Zip.filename in
+             let () = Zip.copy_entry_to_file zip entry tmp_file in
+             let () = close_out outchan in
+             let data =
+               In_channel.with_open_bin tmp_file (fun ic ->
+                   let data = Util.Io.read_file ic () in
+                   { data }
+               )
+             in
+             data
+         )
+    in
+    let stripped_name =
+      Filename.remove_extension @@ Filename.basename archive
+    in
+    let comic = { name = stripped_name; pages } in
+    let () = Zip.close_in zip in
+    Some comic
+  with _ -> None

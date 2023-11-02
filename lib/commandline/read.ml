@@ -63,7 +63,7 @@ let cmd run =
 let archive_of_file file =
   let archive_path = file in
   let name = Filename.remove_extension @@ Filename.basename @@ file in
-  Libyomu.Comic.{ archive_path; name }
+  Libyomu.Item.{ archive_path; name }
 
 let run cmd_read =
   let { files; keep_unzipped; mode } = cmd_read in

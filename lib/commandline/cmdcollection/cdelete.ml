@@ -155,19 +155,17 @@ let delete_normal all specifics =
 
 let delete_encrypted ~key all specifics =
   let ( // ) = Libyomu.App.( // ) in
-  let syomurc = Libyomu.Comic.Syomu.decrypt ~key () in
-  let syomurc, exludes = Libyomu.Comic.Syomu.exclude_series all syomurc in
+  let syomurc = Libyomu.Syomu.decrypt ~key () in
+  let syomurc, exludes = Libyomu.Syomu.exclude_series all syomurc in
 
-  let syomurc, f_exclu =
-    Libyomu.Comic.Syomu.excludes_vseries specifics syomurc
-  in
+  let syomurc, f_exclu = Libyomu.Syomu.excludes_vseries specifics syomurc in
   let delete_files list =
     list
     |> List.iter
        @@ fun sitem ->
        let path =
          Libyomu.App.yomu_hidden_comics
-         // sitem.Libyomu.Comic.encrypted_file_name
+         // sitem.Libyomu.Item.encrypted_file_name
        in
        let message = Printf.sprintf "Cannot delete file: %s\n%!" path in
        let on_success = output_fmt sitem.volume sitem.serie in
@@ -176,7 +174,7 @@ let delete_encrypted ~key all specifics =
   in
   let () = delete_files exludes in
   let () = delete_files f_exclu in
-  let () = ignore @@ Libyomu.Comic.Syomu.encrypt ~key syomurc () in
+  let () = ignore @@ Libyomu.Syomu.encrypt ~key syomurc () in
   ()
 
 let run cmd =

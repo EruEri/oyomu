@@ -88,8 +88,8 @@ let normal_entries ~comic_only series =
        []
 
 let encrypted_entry ~key ~comic_only series =
-  let syomurc = Libyomu.Comic.Syomu.decrypt ~key () in
-  let eentries = Libyomu.Comic.Syomu.entries syomurc in
+  let syomurc = Libyomu.Syomu.decrypt ~key () in
+  let eentries = Libyomu.Syomu.entries syomurc in
   let nentryes = normal_entries ~comic_only series in
   (nentryes, eentries)
 

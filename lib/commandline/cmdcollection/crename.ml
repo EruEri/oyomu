@@ -26,7 +26,7 @@ module StringSet = Set.Make (struct
 end)
 
 module SItemSet = Set.Make (struct
-  type t = Libyomu.Comic.syomu_item
+  type t = Libyomu.Item.syomu_item
 
   let compare (lhs : t) (rhs : t) = compare lhs.volume rhs.volume
 end)
@@ -97,7 +97,7 @@ let rename oldpath newpath =
   show_success oldname newname
 
 let merge_yomu ~old_name ~new_name ~oldyomu ~targetyomu syomurc =
-  let open Libyomu.Comic in
+  let open Libyomu.Item in
   let old_content = SItemSet.of_list oldyomu.scomics in
   let new_content = SItemSet.of_list targetyomu.scomics in
   let conflicting_set = SItemSet.inter old_content new_content in
@@ -120,15 +120,13 @@ let merge_yomu ~old_name ~new_name ~oldyomu ~targetyomu syomurc =
            )
     | true ->
         let () = show_success ~merge:true old_name new_name in
-        Libyomu.Comic.Syomu.rename_serie old_name new_name syomurc
+        Libyomu.Syomu.rename_serie old_name new_name syomurc
   in
   scomics
 
 let rename_encrypted merge ~key ~old_name ~new_name =
-  let syomurc = Libyomu.Comic.Syomu.decrypt ~key () in
-  let old_series_syomu =
-    Libyomu.Comic.Syomu.filter_series [ old_name ] syomurc
-  in
+  let syomurc = Libyomu.Syomu.decrypt ~key () in
+  let old_series_syomu = Libyomu.Syomu.filter_series [ old_name ] syomurc in
   let () =
     match old_series_syomu.scomics with
     | [] ->
@@ -137,14 +135,12 @@ let rename_encrypted merge ~key ~old_name ~new_name =
     | _ :: _ ->
         ()
   in
-  let new_series_syomu =
-    Libyomu.Comic.Syomu.filter_series [ new_name ] syomurc
-  in
+  let new_series_syomu = Libyomu.Syomu.filter_series [ new_name ] syomurc in
   let new_syomu =
     match new_series_syomu.scomics with
     | [] ->
         let () = show_success old_name new_name in
-        Libyomu.Comic.Syomu.rename_serie old_name new_name syomurc
+        Libyomu.Syomu.rename_serie old_name new_name syomurc
     | _ :: _ when not merge ->
         raise
         @@ Libyomu.Error.(
@@ -154,7 +150,7 @@ let rename_encrypted merge ~key ~old_name ~new_name =
         merge_yomu ~old_name ~new_name ~oldyomu:old_series_syomu
           ~targetyomu:new_series_syomu syomurc
   in
-  let _ = Libyomu.Comic.Syomu.encrypt ~key new_syomu () in
+  let _ = Libyomu.Syomu.encrypt ~key new_syomu () in
   ()
 
 (** [path_to_set path] read the content of the directory [path] in put 

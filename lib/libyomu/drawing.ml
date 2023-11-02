@@ -58,6 +58,9 @@ let draw_image ~width ~height ~row_stride (winsize : Winsize.t) mode key_config
     match mode with
     | Chafa.CHAFA_PIXEL_MODE_KITTY | Chafa.CHAFA_PIXEL_MODE_ITERM2 ->
         let () =
+          (*
+            12 24 arbitrairy value witch seem to work  
+          *)
           Chafa.chafa_canvas_config_set_cell_geometry ~width:12 ~height:24
             config
         in
@@ -81,7 +84,7 @@ let draw_image ~width ~height ~row_stride (winsize : Winsize.t) mode key_config
   let () = Chafa.chafa_canvas_config_unref config in
   ()
 
-let draw_page ~index comic_name mode key_config (page : Comic.page) =
+let draw_page ~index comic_name mode key_config (page : Item.page) =
   let winsize = Winsize.get () in
   let () = Termove.redraw_empty () in
   let () = Termove.set_cursor_at 0 0 in
@@ -204,7 +207,7 @@ let read_choice key_config () =
 
 let read_page comic_name mode key_config ignored index zipper =
   let index = index + 1 in
-  let (page : Comic.page option) = Zipper.top_left zipper in
+  let (page : Item.page option) = Zipper.top_left zipper in
   match page with
   | None ->
       `Left
@@ -220,14 +223,14 @@ let read_page comic_name mode key_config ignored index zipper =
       let option = read_choice key_config () in
       option
 
-let read_item mode key_config (item : ('a, Comic.named_archive) Either.t) =
+let read_item mode key_config (item : ('a, Item.named_archive) Either.t) =
   let ( let* ) = Option.bind in
-  let* (Comic.{ pages; name } as c) =
+  let* (Item.{ pages; name } as c) =
     match item with
     | Either.Left comic ->
         Some comic
     | Either.Right { name; archive_path } ->
-        let* comic = Comic.CZip.comic_of_zip archive_path in
+        let* comic = Czip.comic_of_zip archive_path in
         let () = Gc.major () in
         let () = Gc.compact () in
         Some { comic with name }
@@ -285,12 +288,12 @@ let read_collection mode config =
           (zipper, res)
   )
 
-let read_comics ~config mode (archives : Comic.named_archive list) () =
+let read_comics ~config mode (archives : Item.named_archive list) () =
   let () = Termove.start_window () in
   let () = Termove.hide_cursor () in
   let () = MagickWand.magick_wand_genesis () in
 
-  (* let () = archives |> List.map (fun s -> s.Comic.archive_path) |> String.concat "\n" |> debug_string in *)
+  (* let () = archives |> List.map (fun s -> s.Item.archive_path) |> String.concat "\n" |> debug_string in *)
   let collection = List.map Either.right archives in
   let z_collections = Zipper.of_list collection in
 

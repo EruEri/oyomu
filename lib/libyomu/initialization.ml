@@ -58,8 +58,8 @@ let create_yomu_hidden ~key () =
     create_folder ~on_error:(Error.Create_file App.yomu_hidden_comics)
       App.yomu_hidden_comics
   in
-  let syomurc = Comic.Syomu.create in
-  let encrypted = Comic.Syomu.encrypt ~key syomurc () in
+  let syomurc = Syomu.create in
+  let encrypted = Syomu.encrypt ~key syomurc () in
   let* s =
     create_file
       ~on_file:(fun oc -> output_string oc encrypted)

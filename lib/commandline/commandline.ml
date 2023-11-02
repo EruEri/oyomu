@@ -41,8 +41,5 @@ module Main = struct
   let root_info = Cmd.info name ~doc:root_doc ~man:root_man ~version
   let subcommands = [ Read.command; Cmdcollection.command; Config.command ]
   let parse () = Cmd.group root_info subcommands
-
-  let eval () =
-    let () = Libyomu.Ccallback.register_callback () in
-    () |> parse |> Cmd.eval
+  let eval () = () |> parse |> Cmd.eval
 end
