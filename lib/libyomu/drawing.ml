@@ -119,7 +119,9 @@ let draw_page ~index comic_name mode key_config (page : Comic.page) =
   in
   let () = Termove.set_cursor_at winsize.ws_row 0 in
   let () =
-    Termove.draw_string @@ Printf.sprintf "p: %u || %s" index comic_name
+    Termove.draw_string
+    @@ Util.UString.keep_n winsize.ws_col
+    @@ Printf.sprintf "p: %u || %s" index comic_name
   in
   let () = MagickWand.destroy_magick_wand magick_wand in
   ()
