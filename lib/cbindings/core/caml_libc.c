@@ -15,6 +15,7 @@
 //                                                                                            //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
+#include <string.h>
 #define CAML_NAME_SPACE
 
 #include "caml/config.h"
@@ -30,6 +31,8 @@ CAMLprim value caml_get_pass(value prompt, value unit) {
     CAMLlocal1(password);
     const char* c_prompt = String_val(prompt);
     const char* c_password = getpass(c_prompt);
+    size_t c_password_length = strlen(c_password);
     password = caml_copy_string(c_password);
+    memset((void *) c_password, 0, c_password_length);
     CAMLreturn(password);
 }
