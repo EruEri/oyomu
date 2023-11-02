@@ -1,6 +1,6 @@
 # CHANGELOG
 
-# [Unrealeased]
+# [0.3.0]
 - [Collection read regex name](https://github.com/EruEri/oyomu/pull/10)
 - [Improve Kitty, iTerm render](https://github.com/EruEri/oyomu/pull/9)
 
