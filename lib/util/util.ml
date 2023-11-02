@@ -108,7 +108,8 @@ end
 module UString = struct
   let keep_n n s =
     let l = String.length s in
-    match n >= l with true -> s | false -> String.sub s 0 (l + (n - l))
+    let l = min n l in
+    String.sub s 0 l
 end
 
 module Ulist = struct
