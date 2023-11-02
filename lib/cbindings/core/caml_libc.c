@@ -15,7 +15,6 @@
 //                                                                                            //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include <string.h>
 #define CAML_NAME_SPACE
 
 #include "caml/config.h"
@@ -24,6 +23,7 @@
 #include "caml/alloc.h"
 #include "caml/mlvalues.h"
 #include <unistd.h>
+#include <string.h>
 
 
 CAMLprim value caml_get_pass(value prompt, value unit) {
