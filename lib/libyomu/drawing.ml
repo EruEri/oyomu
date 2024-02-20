@@ -317,7 +317,7 @@ let read_epub_pages config zipper =
           failwith "No pages"
       | Some (Epub.Page.EPImage url) ->
           let data = Util.Io.content_filename url () in
-          let page = Comic.{ data } in
+          let page = Item.{ data } in
           fun () ->
             ( Zipper.left zipper,
               draw_page ~index "Random name" CHAFA_PIXEL_MODE_SIXELS config page
