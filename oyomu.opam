@@ -9,13 +9,15 @@ tags: ["comics-reader" "comics-collection" "commandline"]
 homepage: "https://github.com/EruEri/oyomu"
 bug-reports: "https://github.com/EruEri/oyomu/issues"
 depends: [
+  "dune" {>= "3.2"}
+  "dune-configurator"
+  "dune-build-info"
+  "xdg"
   "ocaml" {>= "4.13.0"}
   "camlzip" {>= "1.11"}
-  "dune-build-info"
-  "dune" {>= "3.2"}
+  "ppx_deriving_yojson" {>= "3.5.3"}
+  "yojson" {>= "2.0.0"}
   "cmdliner" {>= "1.1.0"}
-  "xdg"
-  "unix"
   "odoc" {with-doc}
 ]
 build: [
