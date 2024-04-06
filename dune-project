@@ -1,5 +1,5 @@
 (lang dune 3.2)
-(version "0.3.0")
+(version "0.3.0-1")
 
 (name oyomu)
 
@@ -18,7 +18,7 @@
 (package
  (name oyomu)
  (synopsis "A command line comic reader and collection manager")
- (depends (ocaml (>= "4.13.0")) (camlzip (>= "1.11")) dune-build-info dune (cmdliner (>= "1.1.0")) xdg unix)
+ (depends dune dune-configurator dune-build-info xdg (ocaml (>= "4.13.0")) (cryptokit (>= "1.17")) (camlzip (>= "1.11")) (ppx_deriving_yojson (>= "3.5.3")) (yojson (>= "2.0.0"))  (cmdliner (>= "1.1.0")))
  (tags
   ( "comics-reader" "comics-collection" "commandline")))
 
