@@ -1,6 +1,6 @@
 # CHANGELOG
 
-#[0.3.0-1]
+# [0.3.0-1]
 - [Opam dependencies](https://github.com/EruEri/oyomu/pull/12/files)
 
 # [0.3.0]
