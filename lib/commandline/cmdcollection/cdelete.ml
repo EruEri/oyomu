@@ -94,18 +94,18 @@ let rmrf_safe ?on_success ?message path =
 let output_fmt = Printf.sprintf "Successfully deleted: Vol-%u %s\n%!"
 
 let delete_normal all specifics =
-  let ( // ) = Libyomu.App.( // ) in
+  let ( // ) = Libyomu.Config.( // ) in
   let () =
     all
     |> List.iter
        @@ fun serie ->
-       let path = Libyomu.App.yomu_comics // serie in
+       let path = Libyomu.Config.yomu_comics // serie in
        let error_message = Printf.sprintf "No serie : %s\n%!" serie in
        let _ = rmrf_safe ~message:error_message path in
        ()
   in
   let fn_serie_to_check_folder (index, serie) =
-    let path = Libyomu.App.yomu_comics // serie in
+    let path = Libyomu.Config.yomu_comics // serie in
     match Sys.file_exists path with
     | false ->
         None
@@ -142,7 +142,7 @@ let delete_normal all specifics =
     specifics
     |> List.filter_map fn_serie_to_check_folder
     |> List.iter (fun serie ->
-           let folder_path = Libyomu.App.yomu_comics // serie in
+           let folder_path = Libyomu.Config.yomu_comics // serie in
            let folder_content = Sys.readdir folder_path in
            match Array.length folder_content with
            | 0 ->
@@ -154,7 +154,7 @@ let delete_normal all specifics =
   ()
 
 let delete_encrypted ~key all specifics =
-  let ( // ) = Libyomu.App.( // ) in
+  let ( // ) = Libyomu.Config.( // ) in
   let syomurc = Libyomu.Syomu.decrypt ~key () in
   let syomurc, exludes = Libyomu.Syomu.exclude_series all syomurc in
 
@@ -164,7 +164,7 @@ let delete_encrypted ~key all specifics =
     |> List.iter
        @@ fun sitem ->
        let path =
-         Libyomu.App.yomu_hidden_comics
+         Libyomu.Config.yomu_hidden_comics
          // sitem.Libyomu.Item.encrypted_file_name
        in
        let message = Printf.sprintf "Cannot delete file: %s\n%!" path in

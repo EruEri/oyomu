@@ -76,23 +76,24 @@ let variable_description =
      letter of this environment variable"
 
 let var_next_page =
-  make_variable_section Libyomu.App.KeyBindingConst.key_variable_next_page
+  make_variable_section Libyomu.Config.KeyBindingConst.key_variable_next_page
   @@ variable_description "next page key"
 
 let var_previous_page =
-  make_variable_section Libyomu.App.KeyBindingConst.key_variable_previous_page
+  make_variable_section
+    Libyomu.Config.KeyBindingConst.key_variable_previous_page
   @@ variable_description "previous page key"
 
 let var_quit =
-  make_variable_section Libyomu.App.KeyBindingConst.key_variable_quit
+  make_variable_section Libyomu.Config.KeyBindingConst.key_variable_quit
   @@ variable_description "quit key"
 
 let var_goto_page =
-  make_variable_section Libyomu.App.KeyBindingConst.key_variable_goto_page
+  make_variable_section Libyomu.Config.KeyBindingConst.key_variable_goto_page
   @@ variable_description "goto page key"
 
 let var_goto_book =
-  make_variable_section Libyomu.App.KeyBindingConst.key_variable_goto_book
+  make_variable_section Libyomu.Config.KeyBindingConst.key_variable_goto_book
   @@ variable_description "goto book key"
 
 let read_common_description =

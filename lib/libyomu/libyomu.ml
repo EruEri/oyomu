@@ -15,7 +15,7 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-module App = App
+module Config = Config
 module Error = Error
 module Syomu = Syomu
 module NamedArchive = NamedArchive

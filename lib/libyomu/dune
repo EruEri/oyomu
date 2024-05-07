@@ -25,7 +25,6 @@
   str
   cmdliner
   camlzip
-  dune-build-info
   cryptokit
   yojson
   ppx_deriving_yojson.runtime)

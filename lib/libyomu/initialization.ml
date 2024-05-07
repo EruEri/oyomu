@@ -19,31 +19,33 @@ open Util.FileSys
 
 (** [create_yomu_share ()] create the folder [ $XDG_DATA_HOME/share/yomu] *)
 let create_yomu_share () =
-  create_folder ~on_error:(Error.Create_folder App.yomu_share) App.yomu_share
+  create_folder ~on_error:(Error.Create_folder Config.yomu_share)
+    Config.yomu_share
 
 (** 
   [create_yomu_comic ()] create the folder [comic] in [$XDG_DATA_HOME/share/yomu] so 
   [$XDG_DATA_HOME/share/yomu/comics]
 *)
 let create_yomu_comics () =
-  create_folder ~on_error:(Error.Create_folder App.yomu_comics) App.yomu_comics
+  create_folder ~on_error:(Error.Create_folder Config.yomu_comics)
+    Config.yomu_comics
 
-(** [create_yomu_config ()] create the folder [ $XDG_CONFIG_HOME/yomu] and the config file [App.config_file_name]*)
+(** [create_yomu_config ()] create the folder [ $XDG_CONFIG_HOME/yomu] and the config file [Config.config_file_name]*)
 let create_yomu_config () =
   let ( let* ) = Result.bind in
   let* _ =
-    create_folder ~on_error:(Error.Create_folder App.yomu_config)
-      App.yomu_config
+    create_folder ~on_error:(Error.Create_folder Config.yomu_config)
+      Config.yomu_config
   in
   let* s =
-    create_file ~on_error:(Error.Create_file App.yomu_config_file)
-      App.yomu_config_file
+    create_file ~on_error:(Error.Create_file Config.yomu_config_file)
+      Config.yomu_config_file
   in
   Ok s
 
 let check_app_initialized () =
   let () =
-    if not @@ App.is_app_folder_exist () then
+    if not @@ Config.is_app_folder_exist () then
       raise @@ Error.yomu_error @@ Yomu_Not_Initialized
   in
   ()
@@ -55,62 +57,62 @@ let check_app_initialized () =
 let create_yomu_hidden ~key () =
   let ( let* ) = Result.bind in
   let* _ =
-    create_folder ~on_error:(Error.Create_file App.yomu_hidden_comics)
-      App.yomu_hidden_comics
+    create_folder ~on_error:(Error.Create_file Config.yomu_hidden_comics)
+      Config.yomu_hidden_comics
   in
   let syomurc = Syomu.create in
   let encrypted = Syomu.encrypt ~key syomurc () in
   let* s =
     create_file
       ~on_file:(fun oc -> output_string oc encrypted)
-      ~on_error:(Error.Create_file App.yomu_hidden_config)
-      App.yomu_hidden_config
+      ~on_error:(Error.Create_file Config.yomu_hidden_config)
+      Config.yomu_hidden_config
   in
   Ok s
 
 let check_yomu_initialiaze () =
-  match Sys.file_exists App.yomu_share with
+  match Sys.file_exists Config.yomu_share with
   | true ->
       Ok ()
   | false ->
-      Error App.yomu_share
+      Error Config.yomu_share
 
 let check_yomu_hidden () =
   let ( let* ) = Result.bind in
   let* () =
-    match Sys.file_exists App.yomu_hidden_comics with
+    match Sys.file_exists Config.yomu_hidden_comics with
     | true ->
         Ok ()
     | false ->
-        Error App.yomu_hidden_comics
+        Error Config.yomu_hidden_comics
   in
   let* () =
-    match Sys.file_exists App.yomu_hidden_config with
+    match Sys.file_exists Config.yomu_hidden_config with
     | true ->
         Ok ()
     | false ->
-        Error App.yomu_hidden_config
+        Error Config.yomu_hidden_config
   in
   Ok ()
 
 let check_yomu_config () =
   let ( let* ) = Result.bind in
   let* () =
-    match Sys.file_exists App.yomu_config with
+    match Sys.file_exists Config.yomu_config with
     | true ->
         Ok ()
     | false ->
-        Error App.yomu_comics
+        Error Config.yomu_comics
   in
   Ok ()
 
 let read_config () =
   let content =
-    match Sys.file_exists App.yomu_config_file with
+    match Sys.file_exists Config.yomu_config_file with
     | true ->
-        Util.Io.content_filename App.yomu_config_file ()
+        Util.Io.content_filename Config.yomu_config_file ()
     | false ->
-        let () = Out_channel.with_open_bin App.yomu_config_file ignore in
+        let () = Out_channel.with_open_bin Config.yomu_config_file ignore in
         String.empty
   in
   content |> String.split_on_char '\n'

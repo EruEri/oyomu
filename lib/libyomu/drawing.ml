@@ -46,8 +46,8 @@ let draw_image ~width ~height ~row_stride (winsize : Winsize.t) mode key_config
   let width = Int64.to_int width in
   let height = Int64.to_int height in
 
-  let x_scale = App.Config.x_scale mode key_config in
-  let y_scale = App.Config.y_scale mode key_config in
+  let x_scale = Config.Config.x_scale mode key_config in
+  let y_scale = Config.Config.y_scale mode key_config in
 
   let scaled_width, scaled_height =
     (scale ~fac:x_scale winsize.ws_col, scale ~fac:y_scale winsize.ws_row)
@@ -192,15 +192,15 @@ let read_choice key_config () =
   let _ = Unix.read Unix.stdin bytes 0 len in
   let c = Bytes.get bytes 0 in
   match c with
-  | c when c = App.Config.previous_page key_config ->
+  | c when c = Config.Config.previous_page key_config ->
       `Right
-  | c when c = App.Config.next_page key_config ->
+  | c when c = Config.Config.next_page key_config ->
       `Left
-  | c when c = App.Config.quit key_config ->
+  | c when c = Config.Config.quit key_config ->
       `Quit
-  | c when c = App.Config.goto_book key_config ->
+  | c when c = Config.Config.goto_book key_config ->
       read_movement ~parser:parse_book_movement ()
-  | c when c = App.Config.goto_page key_config ->
+  | c when c = Config.Config.goto_page key_config ->
       read_movement ~parser:parser_page_movement ()
   | _ ->
       `Ignore
@@ -255,7 +255,7 @@ let read_collection mode config =
                 let zipper =
                   match either_comic with
                   | Either.Right _ -> (
-                      match App.Config.keep_unzipped config with
+                      match Config.Config.keep_unzipped config with
                       | true ->
                           Zipper.replace_current (Either.left comic) zipper
                       | false ->

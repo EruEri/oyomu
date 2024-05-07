@@ -29,7 +29,7 @@ let of_string bytes = bytes |> Yojson.Safe.from_string |> syomurc_of_yojson
 
 let encrypt ~key syomurc () =
   let data = to_string syomurc in
-  let where = App.yomu_hidden_config in
+  let where = Config.yomu_hidden_config in
   Encryption.encrypt ~where ~key ~iv:encryption_iv data ()
 
 let save_encrypt ~where ~key syomurc () =
@@ -51,7 +51,7 @@ let randomize_iv ~key syomurc =
     List.map
       (fun comic ->
         let path =
-          Filename.concat App.yomu_hidden_comics comic.encrypted_file_name
+          Filename.concat Config.yomu_hidden_comics comic.encrypted_file_name
         in
         let new_iv = Encryption.random_iv () in
         let comic =
@@ -69,14 +69,14 @@ let randomize_iv ~key syomurc =
   { scomics }
 
 let decrypt ~key () =
-  let path = App.yomu_hidden_config in
+  let path = Config.yomu_hidden_config in
   match Encryption.decrpty_file ~key ~iv:encryption_iv path () with
   | Error exn ->
       raise exn
   | Ok None ->
       raise @@ Error.yomu_error
       @@ Error.DecryptionError
-           (Printf.sprintf "Cannot decrypt : %s" App.hidden_config_name)
+           (Printf.sprintf "Cannot decrypt : %s" Config.hidden_config_name)
   | Ok (Some external_maneger_bytes) -> (
       match of_string external_maneger_bytes with
       | Ok data ->
@@ -169,15 +169,15 @@ let entries scomics =
   M.bindings map
 
 let decrypt_all ~key syomurc =
-  let ( // ) = App.( // ) in
+  let ( // ) = Config.( // ) in
   syomurc.scomics
   |> List.map (fun s ->
-         let path = App.yomu_hidden_comics // s.encrypted_file_name in
+         let path = Config.yomu_hidden_comics // s.encrypted_file_name in
          match Encryption.decrpty_file ~key ~iv:s.iv path () with
          | Ok (Some data) ->
              let archive_path =
                Util.Io.dump_tmp ~name:s.encrypted_file_name
-                 ~extension:App.tmp_extension data ()
+                 ~extension:Config.tmp_extension data ()
              in
              let name = Printf.sprintf "%s-%u" s.serie s.volume in
              { archive_path; name }

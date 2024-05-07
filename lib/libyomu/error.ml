@@ -71,7 +71,7 @@ let string_of_error = function
         "\"yomu\" directory doesn't exist. Use oyomu init to initialize"
   | YomuCreateConfigError ->
       Printf.sprintf "Unable to create/read the file : %s"
-      @@ App.yomu_config_file
+      @@ Config.yomu_config_file
   | No_Option_choosen ->
       "Operation Aborted"
   | Missing_init_file file ->

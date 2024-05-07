@@ -91,7 +91,7 @@ Oyomu has 2 strategies to store your comic:
 #### Read
 - You can also read comics within your collection with the ```read``` subcommand of ```oyomu collection```
 
-## How to build
+## Installation
 - First you will need to install those opam packages.
     ```sh
     $ opam install dune xdg camlzip cmdliner dune-configurator cryptokit yojson ppx_deriving_yojson
@@ -105,10 +105,18 @@ Oyomu has 2 strategies to store your comic:
     
   The C libraries must be found by **pkg-config**
 
-- And finally:
-  ```sh
-  git clone https://github.com/EruEri/oyomu
-  cd oyomu
-  dune build
-  dune install
-  ```
+By default the prefix install is `/usr/local`. So oangou binary is installed in `/usr/local/bin` and the man pages in `/usr/local/share/man`. 
+But the `make install` rule reacts to 3 variables:
+- `PREFIX`: 
+  - default: `/usr/local`
+- `BINDIR`: 
+    - default: `$(PREFIX)/bin`
+- `MANDIR`: 
+    - default: `$(PREFIX)/share/man`
+
+```sh
+$ git clone https://github.com/EruEri/oangou
+$ cd oangou
+$ make 
+$ make install 
+```

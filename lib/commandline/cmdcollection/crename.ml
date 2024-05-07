@@ -165,9 +165,9 @@ let path_to_set path =
   |> StringSet.filter (fun s -> not @@ String.starts_with ~prefix:"." s)
 
 let rename_normal merge ~old_name ~new_name =
-  let ( // ) = Libyomu.App.( // ) in
-  let old_path = Libyomu.App.yomu_comics // old_name in
-  let new_path = Libyomu.App.yomu_comics // new_name in
+  let ( // ) = Libyomu.Config.( // ) in
+  let old_path = Libyomu.Config.yomu_comics // old_name in
+  let new_path = Libyomu.Config.yomu_comics // new_name in
   let exist_old = Sys.file_exists old_path && Sys.is_directory old_path in
   let exist_new = Sys.file_exists new_path && Sys.is_directory new_path in
   match (exist_old, exist_new) with
