@@ -46,8 +46,8 @@ let draw_image ~width ~height ~row_stride (winsize : Winsize.t) mode key_config
   let width = Int64.to_int width in
   let height = Int64.to_int height in
 
-  let x_scale = Config.Config.x_scale mode key_config in
-  let y_scale = Config.Config.y_scale mode key_config in
+  let x_scale = Keys.x_scale mode key_config in
+  let y_scale = Keys.y_scale mode key_config in
 
   let scaled_width, scaled_height =
     (scale ~fac:x_scale winsize.ws_col, scale ~fac:y_scale winsize.ws_row)
@@ -192,101 +192,101 @@ let read_choice key_config () =
   let _ = Unix.read Unix.stdin bytes 0 len in
   let c = Bytes.get bytes 0 in
   match c with
-  | c when c = Config.Config.previous_page key_config ->
-      `Right
-  | c when c = Config.Config.next_page key_config ->
+  | c when c = Keys.previous_page key_config ->
       `Left
-  | c when c = Config.Config.quit key_config ->
+  | c when c = Keys.next_page key_config ->
+      `Right
+  | c when c = Keys.quit key_config ->
       `Quit
-  | c when c = Config.Config.goto_book key_config ->
+  | c when c = Keys.goto_book key_config ->
       read_movement ~parser:parse_book_movement ()
-  | c when c = Config.Config.goto_page key_config ->
+  | c when c = Keys.goto_page key_config ->
       read_movement ~parser:parser_page_movement ()
   | _ ->
       `Ignore
 
-let read_page comic_name mode key_config ignored index zipper =
-  let index = index + 1 in
-  let (page : Item.page option) = Zipper.top_left zipper in
-  match page with
+let update_array_comics configs index comic comics =
+  match Keys.keep_unzipped configs with
+  | true ->
+      Array.set comics index (Either.Left comic)
+  | false ->
+      ()
+
+let rec read ~ignored comic_index comics comic_name pixel_mode configs
+    current_index pages =
+  let current_page = try Some pages.(current_index) with _ -> None in
+  match current_page with
   | None ->
-      `Left
-  | Some page ->
+      ()
+  | Some page -> (
       let () =
         match ignored with
         | true ->
             ()
         | false ->
-            let () = draw_page ~index comic_name mode key_config page in
+            let () =
+              draw_page ~index:(current_index + 1) comic_name pixel_mode configs
+                page
+            in
             ()
       in
-      let option = read_choice key_config () in
-      option
-
-let read_item mode key_config (item : ('a, Item.named_archive) Either.t) =
-  let ( let* ) = Option.bind in
-  let* (Item.{ pages; name } as c) =
-    match item with
-    | Either.Left comic ->
-        Some comic
-    | Either.Right { name; archive_path } ->
-        let* comic = Czip.comic_of_zip archive_path in
-        let () = Gc.major () in
-        let () = Gc.compact () in
-        Some { comic with name }
-  in
-
-  let z_pages = Zipper.of_list pages in
-  let res = Zipper.action 0 (read_page name mode key_config) z_pages in
-  Some (c, res)
-
-let read_collection mode config =
-  Zipper.action_alt (fun zipper ->
-      let current_opt = Zipper.top_left zipper in
-      match current_opt with
-      | None ->
-          (zipper, `Left)
-      | Some either_comic ->
-          let zipper, res =
-            match read_item mode config either_comic with
-            | None ->
-                (Zipper.remove_current zipper, `NoAction)
-            | Some (comic, res) ->
-                let zipper =
-                  match either_comic with
-                  | Either.Right _ -> (
-                      match Config.Config.keep_unzipped config with
-                      | true ->
-                          Zipper.replace_current (Either.left comic) zipper
-                      | false ->
-                          zipper
-                    )
-                  | Either.Left _ ->
-                      zipper
-                in
-                let zipper, res =
-                  match res with
-                  | (`Left | `Quit | `Right) as e ->
-                      (zipper, e)
-                  | `GotoBook kind ->
-                      let n, res =
-                        match kind.Zipper.offset with
-                        | n when n < 0 && not kind.absolute ->
-                            (1, `Right)
-                        | n when n > 0 && not kind.absolute ->
-                            (-1, `Left)
-                        | _ ->
-                            (0, `NoAction)
-                      in
-                      (* Need this offset [n] since the since [res] will also move the zipper by one so we remove one by the movement *)
-                      let kind = { kind with offset = kind.offset + n } in
-                      let zipper = Zipper.move kind zipper in
-                      (zipper, res)
-                in
-                (zipper, res)
+      match read_choice configs () with
+      | `Quit ->
+          ()
+      | `GotoBook { absolute; offset } ->
+          let new_index =
+            match absolute with true -> offset | false -> offset + comic_index
           in
-          (zipper, res)
-  )
+          read_collection pixel_mode configs new_index comics
+      | `GotoPage { absolute; offset } ->
+          let new_index =
+            match absolute with
+            | true ->
+                offset
+            | false ->
+                offset + current_index
+          in
+          read ~ignored:false comic_index comics comic_name pixel_mode configs
+            new_index pages
+      | `Ignore | `MovNoValue | `ReadError | `ErrorIndexParsing ->
+          read ~ignored:true comic_index comics comic_name pixel_mode configs
+            current_index pages
+      | `Left ->
+          read ~ignored:false comic_index comics comic_name pixel_mode configs
+            (current_index - 1) pages
+      | `Right ->
+          read ~ignored:false comic_index comics comic_name pixel_mode configs
+            (current_index + 1) pages
+    )
+
+and read_collection pixel_mode configs comic_index comics =
+  let current_page = try Some comics.(comic_index) with _ -> None in
+  match current_page with
+  | None ->
+      ()
+  | Some (item : (_, Item.named_archive) Either.t) -> (
+      let comic_opt =
+        match item with
+        | Either.Left comic ->
+            Some comic
+        | Right { name; archive_path } ->
+            archive_path |> Czip.comic_of_zip
+            |> Option.map (fun (comic : Item.comic) ->
+                   let comic = Item.{ comic with name } in
+                   let () =
+                     update_array_comics configs comic_index comic comics
+                   in
+                   let () = Gc.major () in
+                   let () = Gc.compact () in
+                   comic
+               )
+      in
+      match comic_opt with
+      | None ->
+          read_collection pixel_mode configs (comic_index + 1) comics
+      | Some { pages; name } ->
+          read ~ignored:false comic_index comics name pixel_mode configs 0 pages
+    )
 
 let read_comics ~config mode (archives : Item.named_archive list) () =
   let () = Termove.start_window () in
@@ -294,10 +294,8 @@ let read_comics ~config mode (archives : Item.named_archive list) () =
   let () = MagickWand.magick_wand_genesis () in
 
   (* let () = archives |> List.map (fun s -> s.Item.archive_path) |> String.concat "\n" |> debug_string in *)
-  let collection = List.map Either.right archives in
-  let z_collections = Zipper.of_list collection in
-
-  let _side = read_collection mode config z_collections in
+  let collection = Array.of_list @@ List.map Either.right archives in
+  let () = read_collection mode config 0 collection in
 
   let () = Termove.end_window () in
   let () = Termove.show_cursor () in

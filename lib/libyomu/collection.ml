@@ -20,9 +20,9 @@ let check_exist path () =
   | true ->
       ()
   | false ->
-      failwith @@ "File doesnt exist" ^ path
+      raise @@ Error.(yomu_error @@ FileNotExist path)
 
-let space level = String.init level (fun _ -> ' ')
+let space level = String.init level (Fun.const ' ')
 
 (** [volumes comic] returns the path of the [comic] and its content *)
 let volumes comic =
@@ -58,7 +58,7 @@ module Normal = struct
           raise
           @@ Error.(
                yomu_error
-               @@ Volume_already_existing { comic = comic_name; volume = index }
+               @@ VolumeAlreadyExisting { comic = comic_name; volume = index }
              )
     in
     ()
@@ -161,14 +161,17 @@ module Encrypted = struct
     | true ->
         ()
     | false ->
-        failwith "S: Serie doesnt exist"
+        raise @@ Error.(yomu_error @@ ComicNotExist comic_name)
 
   let check_duplicate comic_name volume syomurc () =
     match Syomu.exists volume comic_name syomurc with
     | false ->
         ()
     | true ->
-        failwith "S: Duplicated exist"
+        raise
+        @@ Error.(
+             yomu_error @@ VolumeAlreadyExisting { comic = comic_name; volume }
+           )
 
   let dname comic_name index comic_archive =
     let extension = Filename.extension comic_archive in

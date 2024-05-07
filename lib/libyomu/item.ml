@@ -24,8 +24,8 @@ type syomu_item = {
 [@@deriving yojson]
 
 type syomurc = { scomics : syomu_item list } [@@deriving yojson]
-type page = { data : string }
-type comic = { name : string; pages : page list }
+type page = { data : string } [@@unboxed]
+type comic = { name : string; pages : page array }
 
 type reading_item = (comic, string) Either.t
 (** Either an unzip comic or it archive path *)

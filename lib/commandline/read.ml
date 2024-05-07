@@ -68,11 +68,11 @@ let archive_of_file file =
 let run cmd_read =
   let { files; keep_unzipped; mode } = cmd_read in
   let (config, _lines_errors), _err =
-    match Libyomu.Config.Config.parse ?keep_unzipped () with
+    match Libyomu.Keys.parse ?keep_unzipped () with
     | Ok c ->
         (c, false)
     | Error _ ->
-        ((Libyomu.Config.Config.empty, []), true)
+        ((Libyomu.Keys.empty, []), true)
   in
   let files = List.map archive_of_file files in
   let () = Libyomu.Drawing.read_comics ~config mode files () in

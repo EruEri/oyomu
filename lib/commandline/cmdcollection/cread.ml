@@ -129,11 +129,11 @@ let read_encrypted ~key regex all specifics =
 let run cmd =
   let { encrypted; keep_unzipped; regex; all; specifics; pixel_mode } = cmd in
   let (config, _lines_errors), _err =
-    match Libyomu.Config.Config.parse ?keep_unzipped () with
+    match Libyomu.Keys.parse ?keep_unzipped () with
     | Ok c ->
         (c, false)
     | Error _ ->
-        ((Libyomu.Config.Config.empty, []), true)
+        ((Libyomu.Keys.empty, []), true)
   in
   let () = Cmdcommon.check_yomu_initialiaze () in
   let key_opt = Cmdcommon.ask_password_if_encrypted encrypted () in

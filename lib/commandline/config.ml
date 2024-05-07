@@ -101,7 +101,7 @@ let x_scale_term =
       "%s : %s.\n      Percentage with each image is scaled on x (default: %u)"
       spm
       (Arg.doc_alts_enum Libyomu.Pixel.pixels_modes)
-      Libyomu.Config.Config.default_x_scale
+      Libyomu.Keys.default_x_scale
   in
   let docv = Printf.sprintf "%s=PERCENT" spm in
   Arg.(
@@ -116,7 +116,7 @@ let y_scale_term =
       "%s : %s.\n      Percentage with each image is scaled on y (default: %u)"
       spm
       (Arg.doc_alts_enum Libyomu.Pixel.pixels_modes)
-      Libyomu.Config.Config.default_y_scale
+      Libyomu.Keys.default_y_scale
   in
   let docv = Printf.sprintf "%s=PERCENT" spm in
   Arg.(
@@ -155,14 +155,14 @@ let make_variable_section variable content =
 
 let variable_description =
   [
-    `I (Libyomu.Config.KeyBindingConst.key_variable_next_page, "Next page key");
+    `I (Libyomu.Keys.KeyBindingConst.key_variable_next_page, "Next page key");
     `I
-      ( Libyomu.Config.KeyBindingConst.key_variable_previous_page,
+      ( Libyomu.Keys.KeyBindingConst.key_variable_previous_page,
         "Previous page key"
       );
-    `I (Libyomu.Config.KeyBindingConst.key_variable_quit, "Quit key");
-    `I (Libyomu.Config.KeyBindingConst.key_variable_goto_page, "Change page key");
-    `I (Libyomu.Config.KeyBindingConst.key_variable_goto_book, "Change book key");
+    `I (Libyomu.Keys.KeyBindingConst.key_variable_quit, "Quit key");
+    `I (Libyomu.Keys.KeyBindingConst.key_variable_goto_page, "Change page key");
+    `I (Libyomu.Keys.KeyBindingConst.key_variable_goto_book, "Change book key");
   ]
 
 let man =
@@ -227,8 +227,8 @@ let run cmd_config =
   } =
     cmd_config
   in
-  let module AK = Libyomu.Config.KeyBindingConst in
-  let module AC = Libyomu.Config.Config in
+  let module AK = Libyomu.Keys.KeyBindingConst in
+  let module AC = Libyomu.Keys in
   let ( !! ) = function
     | Ok e ->
         e
@@ -239,7 +239,7 @@ let run cmd_config =
     match create with
     | false ->
         ( !! )
-          (Libyomu.Config.Config.parse ()
+          (Libyomu.Keys.parse ()
           |> Result.map_error @@ fun _ -> Libyomu.Error.YomuCreateConfigError
           )
     | true ->
@@ -249,7 +249,7 @@ let run cmd_config =
             @@ Libyomu.Init.create_yomu_config ()
             )
         in
-        (Libyomu.Config.Config.empty, [])
+        (Libyomu.Keys.empty, [])
   in
   let base_config = config in
   let config =
@@ -293,15 +293,13 @@ let run cmd_config =
     *)
     match base_config == config with
     | true ->
-        let () =
-          Printf.printf "%s\n" @@ Libyomu.Config.Config.to_string config
-        in
+        let () = Printf.printf "%s\n" @@ Libyomu.Keys.to_string config in
         ()
     | false ->
         ()
   in
 
-  let () = Libyomu.Config.Config.save config in
+  let () = Libyomu.Keys.save config in
   ()
 
 let command = cmd run

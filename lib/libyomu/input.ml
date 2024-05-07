@@ -30,11 +30,11 @@ let confirm_password ~first_message ~confirm_message () =
 
 let confirm_password_encrypted ~first_message ~confirm_message () =
   confirm_password ~first_message ~confirm_message ()
-  |> Result.map (fun pass -> Encryption.aes_string_encrypt pass ())
+  |> Result.map Encryption.sha256_digest
 
 let ask_password_encrypted ~prompt () =
   let pass = Cbindings.Libc.getpass prompt () in
-  Encryption.aes_string_encrypt pass ()
+  Encryption.sha256_digest pass
 
 type _ input_behavior =
   | Continue : string option -> bool input_behavior
@@ -68,7 +68,7 @@ let rec confirm_choice :
       else if choice = s_no then
         false
       else
-        let () = message |> Option.iter (fun s -> Printf.printf "%s\n" s) in
+        let () = Option.iter (Printf.printf "%s\n") message in
         confirm_choice ~continue_on_wrong_input ~case_insensible ~yes ~no
           ~prompt ()
   | Stop_Wrong message ->
@@ -77,5 +77,5 @@ let rec confirm_choice :
       else if choice = s_no then
         Some false
       else
-        let () = message |> Option.iter (fun s -> Printf.printf "%s\n" s) in
+        let () = Option.iter (Printf.printf "%s\n") message in
         None
