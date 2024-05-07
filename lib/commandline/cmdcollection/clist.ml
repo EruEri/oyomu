@@ -66,10 +66,10 @@ let normal_entries ~comic_only series =
   in
   let ( // ) = Filename.concat in
   let always = series = [] in
-  Libyomu.App.yomu_comics |> Sys.readdir
+  Libyomu.Config.yomu_comics |> Sys.readdir
   |> Array.fold_left
        (fun acc entry ->
-         let path = Libyomu.App.yomu_comics // entry in
+         let path = Libyomu.Config.yomu_comics // entry in
          match Sys.is_directory path with
          | false ->
              acc

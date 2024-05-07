@@ -15,7 +15,7 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-module App = App
+module Config = Config
 module Error = Error
 module Syomu = Syomu
 module NamedArchive = NamedArchive
@@ -26,3 +26,4 @@ module Init = Initialization
 module Input = Input
 module Encryption = Encryption
 module Pixel = Pixel
+module Keys = Keys

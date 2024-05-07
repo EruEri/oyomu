@@ -25,12 +25,13 @@ let comic_of_zip archive =
     let zip = Zip.open_in archive in
     let entry = Zip.entries zip in
     let pages =
-      entry
-      |> List.map (fun entry ->
+      Array.of_list
+      @@ List.map
+           (fun entry ->
              let tmp_file, outchan =
                Filename.open_temp_file
                  (Filename.basename entry.Zip.filename)
-                 App.tmp_extension
+                 Config.tmp_extension
              in
              let () = prerr_endline entry.Zip.filename in
              let () = Zip.copy_entry_to_file zip entry tmp_file in
@@ -42,7 +43,8 @@ let comic_of_zip archive =
                )
              in
              data
-         )
+           )
+           entry
     in
     let stripped_name =
       Filename.remove_extension @@ Filename.basename archive

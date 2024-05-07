@@ -18,7 +18,7 @@
 let uint_8_max = 256
 let iv_size = 12
 
-let aes_string_encrypt s () =
+let sha256_digest s =
   let aes = Cryptokit.Hash.sha256 () in
   let _ = aes#add_string s in
   aes#result

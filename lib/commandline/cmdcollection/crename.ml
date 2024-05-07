@@ -113,10 +113,8 @@ let merge_yomu ~old_name ~new_name ~oldyomu ~targetyomu syomurc =
         raise
         @@ Libyomu.Error.(
              yomu_error
-             @@ Rename_Error
-                  (Complicting_volume
-                     { oldname = old_name; newname = new_name; conflits }
-                  )
+             @@ ComplictingVolumes
+                  { oldname = old_name; newname = new_name; conflits }
            )
     | true ->
         let () = show_success ~merge:true old_name new_name in
@@ -132,8 +130,7 @@ let rename_encrypted merge ~key ~old_name ~new_name =
   let () =
     match old_series_syomu.scomics with
     | [] ->
-        raise
-        @@ Libyomu.Error.(yomu_error @@ Rename_Error (Comic_not_exist old_name))
+        raise @@ Libyomu.Error.(yomu_error @@ ComicNotExist old_name)
     | _ :: _ ->
         ()
   in
@@ -146,10 +143,7 @@ let rename_encrypted merge ~key ~old_name ~new_name =
         let () = show_success old_name new_name in
         Libyomu.Syomu.rename_serie old_name new_name syomurc
     | _ :: _ when not merge ->
-        raise
-        @@ Libyomu.Error.(
-             yomu_error @@ Rename_Error (Comic_already_exist new_name)
-           )
+        raise @@ Libyomu.Error.(yomu_error @@ ComicAlreadyExist new_name)
     | _ :: _ ->
         merge_yomu ~old_name ~new_name ~oldyomu:old_series_syomu
           ~targetyomu:new_series_syomu syomurc
@@ -165,24 +159,20 @@ let path_to_set path =
   |> StringSet.filter (fun s -> not @@ String.starts_with ~prefix:"." s)
 
 let rename_normal merge ~old_name ~new_name =
-  let ( // ) = Libyomu.App.( // ) in
-  let old_path = Libyomu.App.yomu_comics // old_name in
-  let new_path = Libyomu.App.yomu_comics // new_name in
+  let ( // ) = Libyomu.Config.( // ) in
+  let old_path = Libyomu.Config.yomu_comics // old_name in
+  let new_path = Libyomu.Config.yomu_comics // new_name in
   let exist_old = Sys.file_exists old_path && Sys.is_directory old_path in
   let exist_new = Sys.file_exists new_path && Sys.is_directory new_path in
   match (exist_old, exist_new) with
   | true, false ->
       rename old_path new_path
   | false, (true | false) ->
-      raise
-      @@ Libyomu.Error.(yomu_error @@ Rename_Error (Comic_not_exist old_name))
+      raise @@ Libyomu.Error.(yomu_error @@ ComicNotExist old_name)
   | true, true -> (
       match merge with
       | false ->
-          raise
-          @@ Libyomu.Error.(
-               yomu_error @@ Rename_Error (Comic_already_exist new_name)
-             )
+          raise @@ Libyomu.Error.(yomu_error @@ ComicAlreadyExist new_name)
       | true ->
           let old_content = path_to_set old_path in
           let new_content = path_to_set new_path in
@@ -194,14 +184,8 @@ let rename_normal merge ~old_name ~new_name =
                 raise
                 @@ Libyomu.Error.(
                      yomu_error
-                     @@ Rename_Error
-                          (Complicting_volume
-                             {
-                               oldname = old_name;
-                               newname = new_name;
-                               conflits;
-                             }
-                          )
+                     @@ ComplictingVolumes
+                          { oldname = old_name; newname = new_name; conflits }
                    )
             | true ->
                 let () =

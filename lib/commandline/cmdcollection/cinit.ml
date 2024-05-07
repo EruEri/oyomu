@@ -99,16 +99,16 @@ let clear_if should_clear () =
   | false ->
       ()
   | true ->
-      Util.FileSys.rmrf App.yomu_share ()
+      Util.FileSys.rmrf Config.yomu_share ()
 
 let run cmd_init =
   let { encrypted; force } = cmd_init in
   let ( >== ) = Result.bind in
-  let is_app_folder_exist = Sys.file_exists App.yomu_share in
+  let is_app_folder_exist = Sys.file_exists Config.yomu_share in
   let res =
     match is_app_folder_exist && not (force || encrypted) with
     | true ->
-        Error Error.(App_folder_already_exist App.yomu_share)
+        Error Error.(AppFolderAlreadyExist Config.yomu_share)
     | false ->
         let () = clear_if (is_app_folder_exist && force) () in
         let _ = init_config () in

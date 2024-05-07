@@ -20,13 +20,13 @@ let check_exist path () =
   | true ->
       ()
   | false ->
-      failwith @@ "File doesnt exist" ^ path
+      raise @@ Error.(yomu_error @@ FileNotExist path)
 
-let space level = String.init level (fun _ -> ' ')
+let space level = String.init level (Fun.const ' ')
 
 (** [volumes comic] returns the path of the [comic] and its content *)
 let volumes comic =
-  let open App in
+  let open Config in
   let path = yomu_comics // comic in
   match Sys.file_exists path with
   | true ->
@@ -45,7 +45,7 @@ let are_same_volume lhs rhs =
 
 module Normal = struct
   let add ~comic_name ~comic_dir ~comic_dir_content index comic_archive =
-    let open App in
+    let open Config in
     let indexed_archive = convert_name index comic_archive in
     let path = comic_dir // indexed_archive in
     let () =
@@ -58,7 +58,7 @@ module Normal = struct
           raise
           @@ Error.(
                yomu_error
-               @@ Volume_already_existing { comic = comic_name; volume = index }
+               @@ VolumeAlreadyExisting { comic = comic_name; volume = index }
              )
     in
     ()
@@ -82,13 +82,13 @@ module Normal = struct
     let name = Printf.sprintf "%s-%s" comic_name file_name in
     Item.{ archive_path; name }
 
-  let yomu_comics () = Array.to_list @@ Sys.readdir App.yomu_comics
+  let yomu_comics () = Array.to_list @@ Sys.readdir Config.yomu_comics
 
   (**
-        [read_comic_dir name] read the content of [Libyomu.App.yomu_comics/name]
+        [read_comic_dir name] read the content of [Libyomu.Config.yomu_comics/name]
     *)
   let read_comic_dir name =
-    let full_path = Filename.concat App.yomu_comics name in
+    let full_path = Filename.concat Config.yomu_comics name in
     List.filter (Fun.negate @@ String.starts_with ~prefix:".")
     @@ Array.to_list @@ Sys.readdir full_path
 
@@ -107,7 +107,7 @@ module Normal = struct
                let elts = read_comic_dir name in
                Option.some
                @@ List.sort NamedArchive.compare_named_archive
-               @@ List.map (named_archive_of_name App.yomu_comics name) elts
+               @@ List.map (named_archive_of_name Config.yomu_comics name) elts
            | false | true ->
                None
        )
@@ -140,7 +140,7 @@ module Normal = struct
                (fun file ->
                  match int_of_string_opt @@ Filename.remove_extension file with
                  | Some n when n = index ->
-                     let path = App.yomu_comics // comic_name in
+                     let path = Config.yomu_comics // comic_name in
                      let name = Printf.sprintf "%s-%s" comic_name file in
                      let archive_path = path // file in
                      let ar = Item.{ archive_path; name } in
@@ -161,14 +161,17 @@ module Encrypted = struct
     | true ->
         ()
     | false ->
-        failwith "S: Serie doesnt exist"
+        raise @@ Error.(yomu_error @@ ComicNotExist comic_name)
 
   let check_duplicate comic_name volume syomurc () =
     match Syomu.exists volume comic_name syomurc with
     | false ->
         ()
     | true ->
-        failwith "S: Duplicated exist"
+        raise
+        @@ Error.(
+             yomu_error @@ VolumeAlreadyExisting { comic = comic_name; volume }
+           )
 
   let dname comic_name index comic_archive =
     let extension = Filename.extension comic_archive in
@@ -178,7 +181,7 @@ module Encrypted = struct
   (*  *)
 
   let add_encrypted ~key ~existing ~comic_name index comic_archive syomurc =
-    let ( // ) = App.( // ) in
+    let ( // ) = Config.( // ) in
     let () =
       match existing with
       | true ->
@@ -198,7 +201,7 @@ module Encrypted = struct
     let digest_name = Util.Hash.hash_name ~name ~extension in
     let item = Syomu.create_item digest_name comic_name index in
     let content = Util.Io.content_filename comic_archive () in
-    let content_outfile = App.yomu_hidden_comics // digest_name in
+    let content_outfile = Config.yomu_hidden_comics // digest_name in
     let _encrypted_content =
       Encryption.encrypt ~where:content_outfile ~key ~iv:item.iv content ()
     in

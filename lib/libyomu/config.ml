@@ -15,21 +15,31 @@
 (*                                                                                            *)
 (**********************************************************************************************)
 
-type syomu_item = {
-  iv : string;
-  encrypted_file_name : string;
-  serie : string;
-  volume : int;
-}
-[@@deriving yojson]
+let yomu_name = "yomu"
+let tmp_extension = yomu_name
+let ( // ) = Filename.concat
+let xdg = Xdg.create ~env:Sys.getenv_opt ()
+let xdg_data = Xdg.data_dir xdg
+let xdg_config = Xdg.config_dir xdg
+let comics_folder_name = "comics"
+let hidden_folder_name = ".scomics"
+let hidden_config_name = ".syomurc"
+let config_file_name = "yomurc"
+let yomu_share = xdg_data // yomu_name
 
-type syomurc = { scomics : syomu_item list } [@@deriving yojson]
-type page = { data : string } [@@unboxed]
-type comic = { name : string; pages : page array }
+(** [$XDG_DATA_HOME/share/yomu/comics/] *)
+let yomu_comics = yomu_share // comics_folder_name
 
-type reading_item = (comic, string) Either.t
-(** Either an unzip comic or it archive path *)
+(** [$XDG_DATA_HOME/share/yomu/.scomics/] *)
+let yomu_hidden_comics = yomu_share // hidden_folder_name
 
-type named_archive = { name : string; archive_path : string }
-type reading_collection = reading_item list
-type collection = comic list
+(** [$XDG_DATA_HOME/share/yomu/.scomics/.syomurc]*)
+let yomu_hidden_config = yomu_hidden_comics // hidden_config_name
+
+(** [$XDG_CONFIG_HOME/yomu/]*)
+let yomu_config = xdg_config // yomu_name
+
+(** [$XDG_CONFIG_HOME/yomu/yomurc]*)
+let yomu_config_file = yomu_config // config_file_name
+
+let is_app_folder_exist () = Sys.file_exists yomu_share

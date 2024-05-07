@@ -90,9 +90,9 @@ let decrypt ~quiet ~outdir ~key all specifics =
     |> List.iter
        @@ fun sitem ->
        let open Libyomu.Item in
-       let ( // ) = Libyomu.App.( // ) in
+       let ( // ) = Libyomu.Config.( // ) in
        let encrypted_path =
-         Libyomu.App.yomu_hidden_comics // sitem.encrypted_file_name
+         Libyomu.Config.yomu_hidden_comics // sitem.encrypted_file_name
        in
        let () =
          match

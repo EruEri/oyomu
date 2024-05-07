@@ -19,23 +19,13 @@ module Main = struct
   open Cmdliner
 
   let name = "oyomu"
-
-  let version =
-    let s =
-      match Build_info.V1.version () with
-      | None ->
-          "n/a"
-      | Some v ->
-          Build_info.V1.Version.to_string v
-    in
-    Printf.sprintf "%s" s
-
+  let version = "0.3.0-1"
   let root_doc = "a comic reader"
 
   let root_man =
     [
       `S Manpage.s_description;
-      `P "$(iname) allows to manager and read your comic collection";
+      `P "$(iname) allows to manage and read your comic collection";
     ]
 
   let root_info = Cmd.info name ~doc:root_doc ~man:root_man ~version
