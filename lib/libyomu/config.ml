@@ -16,6 +16,7 @@
 (**********************************************************************************************)
 
 let yomu_name = "yomu"
+let version = "0.3.1"
 let tmp_extension = yomu_name
 let ( // ) = Filename.concat
 let xdg = Xdg.create ~env:Sys.getenv_opt ()

@@ -1,5 +1,5 @@
 (lang dune 3.2)
-(version "0.3.0-1")
+(version "0.3.1")
 
 (name oyomu)
 

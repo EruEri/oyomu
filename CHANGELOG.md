@@ -1,7 +1,7 @@
 # CHANGELOG
 
-## [Unreleased]
-- [Divers improvements]
+## [0.3.1]
+- [Divers improvements](https://github.com/EruEri/oyomu/pull/13)
 
 ## [0.3.0-1]
 - [Opam dependencies](https://github.com/EruEri/oyomu/pull/12)

@@ -19,7 +19,7 @@ module Main = struct
   open Cmdliner
 
   let name = "oyomu"
-  let version = "0.3.0-1"
+  let version = Libyomu.Config.version
   let root_doc = "a comic reader"
 
   let root_man =
@@ -30,6 +30,6 @@ module Main = struct
 
   let root_info = Cmd.info name ~doc:root_doc ~man:root_man ~version
   let subcommands = [ Read.command; Cmdcollection.command; Config.command ]
-  let parse () = Cmd.group root_info subcommands
-  let eval () = () |> parse |> Cmd.eval
+  let commands = Cmd.group root_info subcommands
+  let eval () = Cmd.eval commands
 end
