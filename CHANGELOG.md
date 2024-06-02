@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [0.4.0]
+- [oyomu: change exits code](https://codeberg.org/EruEri/oyomu/pulls/16)
+- [suyomu: suwayomu frontend](https://codeberg.org/EruEri/oyomu/pulls/15)
+
+## [0.3.1]
+- [Divers improvements](https://github.com/EruEri/oyomu/pull/13)
+
 # [0.3.0]
 - [Collection read regex name](https://github.com/EruEri/oyomu/pull/10)
 - [Improve Kitty, iTerm render](https://github.com/EruEri/oyomu/pull/9)
