@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [0.4.0-1]
+- Don't create temporaries files when unzipping files (load faster)
+- [oyomu-rename]: Don't try to remove folder after rename (folder doesnt exist because rename (ie. mv) delete a old one)
+- [oyomu-*-read]: Sort files by name before reading
+
+
 ## [0.4.0]
 - [oyomu: change exits code](https://codeberg.org/EruEri/oyomu/pulls/16)
 - [suyomu: suwayomu frontend](https://codeberg.org/EruEri/oyomu/pulls/15)
