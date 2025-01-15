@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [0.5.1]
+- oyomu read:
+    - Read from stdin if no file is given
+- oyomu collection read: 
+    - Encrypted comics kept in memory by default. (only comics not epub)
+
 ## [0.5.0]:
 **BREAKING CHANGES**
 - Change oyomu xgd directory name:
