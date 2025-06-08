@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [0.5.2]
+- Change the keys configuration: use json file instead of key value files.
+    - Old config still works.
+- Add `aspect` option to change image aspect scale is displayed
+
 ## [0.5.1]
 - oyomu read:
     - Read from stdin if no file is given
